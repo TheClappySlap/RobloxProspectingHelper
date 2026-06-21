@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prospecting Build Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/styles/app.css">
+  <link rel="stylesheet" href="src/styles/museum.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>⛏️</text></svg>">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">⛏️</span>
+      <div>
+        <h1>Prospecting Build Planner</h1>
+        <p class="tagline">Plan your kit, compare builds, watch your output.</p>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab" data-tab="planner">⛏️ Build Planner</button>
+      <button class="tab" data-tab="museum">🏛️ Museum</button>
+    </nav>
+    <div class="topbar-actions">
+      <button class="btn-presets" id="presetsBtn" title="Load a meta build">📋 Meta Builds</button>
+      <button class="btn-optimize" id="optimizeBtn" title="Find the best accessory loadout for Rolls/sec">⚡ Auto-Optimize</button>
+      <label class="compare-switch" id="compareSwitch">
+        <input type="checkbox" id="compareToggle">
+        <span class="cs-track"><span class="cs-thumb"></span></span>
+        <span>Compare two builds</span>
+      </label>
+    </div>
+  </header>
+
+  <main id="app"><!-- active tab view rendered here --></main>
+
+  <script type="module" src="src/ui/main.js"></script>
+</body>
+</html>

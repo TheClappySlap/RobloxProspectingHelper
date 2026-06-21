@@ -1,0 +1,6 @@
+# Personal, machine-local Claude Code settings (permissions, etc.)
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.pyc
