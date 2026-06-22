@@ -134,7 +134,13 @@ export const ORES = {
     { name: 'Dinosaur Skull', kg: 100, effects: [{ stat: 'sell_boost', max: 0.4 }, { stat: 'size_boost', max: 0.32 }] },
     { name: 'Eternium', kg: 20, effects: [{ stat: 'luck', max: 0.32 }, { stat: 'dig_speed', max: 0.32 }, { stat: 'shake_speed', max: 0.32 }] },
     { name: 'Forgotten Totem', kg: 40, effects: [{ stat: 'sell_boost', max: 0.8 }] },
-    { name: 'North Star', kg: 40, effects: [{ stat: 'luck', max: 0.32 }, { stat: 'capacity', max: 0.32 }, { stat: 'dig_speed', max: 0.32 }, { stat: 'shake_speed', max: 0.32 }] },
+    { name: 'North Star', kg: 40, effects: [{ stat: 'luck', max: 0.2 }, { stat: 'capacity', max: 0.2 }, { stat: 'dig_speed', max: 0.2 }, { stat: 'shake_speed', max: 0.2 }] },
+    { name: 'Pumpkin Soul', kg: 40, effects: [{ stat: 'size_boost', max: 0.56 }] },
+    { name: 'Singularium', kg: 100, effects: [{ stat: 'capacity', max: 0.48 }, { stat: 'size_boost', max: 0.48 }] },
+    { name: 'Starpiercer', kg: 40, effects: [{ stat: 'dig_strength', max: 0.48 }, { stat: 'shake_amount', max: 0.48 }] },
+    { name: 'Umbrite', kg: 40, effects: [{ stat: 'dig_speed', max: 0.4 }, { stat: 'shake_speed', max: 0.4 }] },
+    { name: 'Vineheart', kg: 40, effects: [{ stat: 'luck', max: 0.8 }] },
+    { name: 'Voidstone', kg: 20, effects: [{ stat: 'luck', max: 0.4 }, { stat: 'capacity', max: 0.4 }] },
   ],
 };
 
@@ -158,7 +164,7 @@ export const MUTATIONS = [
 ];
 
 // Per-mutation-stat boost, by ore rarity.
-export const MUTATION_MULT = { common: 0.01, uncommon: 0.01, rare: 0.01, epic: 0.02, legendary: 0.03, mythic: 0.05, exotic: 0.08 };
+export const MUTATION_MULT = { common: 0.005, uncommon: 0.0075, rare: 0.0125, epic: 0.02, legendary: 0.03, mythic: 0.05, exotic: 0.08 };
 
 // Display order + colors for stats. `css` matches the scoped .museum-view palette.
 export const STAT_CONFIG = {

@@ -55,7 +55,7 @@ const PRIORITY_CHAINS = [
     id: 'size_build',
     label: 'Size Build',
     icon: '⚡',
-    chain: ['sell_boost', 'luck', 'capacity', 'shake_amount', 'dig_strength'],
+    chain: ['size_boost', 'luck', 'capacity', 'shake_amount', 'dig_strength'],
   },
 ];
 
@@ -276,7 +276,7 @@ function slotHtml(r, slot, idx) {
   if (slot.mutation) {
     mutEffs = slot.mutation.stats.map(st =>
       `<div class="mv-eff"><span class="${STAT_CONFIG[st].css}">${STAT_CONFIG[st].label}</span>
-       <span class="mv-eff-v">+${MUTATION_MULT[r.id].toFixed(2)}x</span></div>`).join('');
+       <span class="mv-eff-v">+${MUTATION_MULT[r.id].toFixed(3)}x</span></div>`).join('');
   }
   let menu = `<div class="cd-item" data-act="set-mut" data-r="${r.id}" data-i="${idx}" data-mut="">
       <span class="cd-name" style="color:var(--mv-dim)">No Modifier</span></div>`;
@@ -292,7 +292,7 @@ function slotHtml(r, slot, idx) {
       <div class="mv-slot-name">${escapeHtml(slot.ore.name)}</div>
       <div class="custom-dropdown ${openDropdown === ddId ? 'open' : ''}">
         <div class="cd-trigger" data-act="dd-toggle" data-dd="${ddId}">
-          <span style="color:${slot.mutation ? 'var(--gold)' : 'var(--mv-dim)'}">${escapeHtml(mutLabel)}</span>
+          <span class="cd-label" style="color:${slot.mutation ? 'var(--gold)' : 'var(--mv-dim)'}">${escapeHtml(mutLabel)}</span>
           <span class="cd-caret">▼</span>
         </div>
         <div class="cd-menu">${menu}</div>
@@ -319,8 +319,11 @@ function raritySection(r, equipped) {
     const eq = equipped.has(ore.name);
     const effs = ore.effects.map(e => `<span class="${STAT_CONFIG[e.stat].css}">${STAT_CONFIG[e.stat].label}</span>`).join(', ');
     const maxes = ore.effects.map(e => `${e.max}x`).join(', ');
+    const actCell = eq
+      ? `<td class="mv-row-act"><button class="mv-row-unequip" data-act="unequip-ore" data-r="${r.id}" data-ore="${escapeHtml(ore.name)}">✕ Remove</button></td>`
+      : `<td class="mv-row-act"><span class="mv-row-equip">+ Equip</span></td>`;
     return `<tr class="${eq ? 'equipped' : ''}" ${eq ? '' : `data-act="equip" data-r="${r.id}" data-ore="${escapeHtml(ore.name)}"`}>
-      <td style="color:${r.color}">${escapeHtml(ore.name)}</td><td>${ore.kg || '--'}</td><td>${effs}</td><td>${maxes}</td></tr>`;
+      <td style="color:${r.color}">${escapeHtml(ore.name)}</td><td>${ore.kg || '--'}</td><td>${effs}</td><td>${maxes}</td>${actCell}</tr>`;
   };
 
   let body = visible.map(rowHtml).join('');
@@ -340,7 +343,7 @@ function raritySection(r, equipped) {
       </div>
       <div class="mv-slots">${slots}</div>
       <div class="mv-table-wrap"><table class="mv-table">
-        <thead><tr><th>Ore</th><th>Min KG</th><th>Bonus</th><th>Max Boost</th></tr></thead>
+        <thead><tr><th>Ore</th><th>Min KG</th><th>Bonus</th><th>Max Boost</th><th></th></tr></thead>
         <tbody>${body || `<tr><td colspan="4" class="mv-faint" style="text-align:center">All ores hidden by filter</td></tr>`}</tbody>
       </table></div>
     </section>`;
@@ -412,9 +415,9 @@ export function renderMuseumTab(root) {
         <div class="mv-side-label">Modifier Math</div>
         <table class="mv-math-table">
           <tr><th>Rarity</th><th>Base</th><th>Mut</th></tr>
-          <tr><td>Common</td><td>0.05x</td><td>0.01x</td></tr>
-          <tr><td>Uncommon</td><td>0.08x</td><td>0.01x</td></tr>
-          <tr><td>Rare</td><td>0.13x</td><td>0.01x</td></tr>
+          <tr><td>Common</td><td>0.05x</td><td>0.005x</td></tr>
+          <tr><td>Uncommon</td><td>0.08x</td><td>0.008x</td></tr>
+          <tr><td>Rare</td><td>0.13x</td><td>0.013x</td></tr>
           <tr><td>Epic</td><td>0.20x</td><td>0.02x</td></tr>
           <tr><td>Legendary</td><td>0.30x</td><td>0.03x</td></tr>
           <tr><td>Mythic</td><td>0.50x</td><td>0.05x</td></tr>
@@ -459,6 +462,11 @@ function wire(root) {
     switch (act) {
       case 'target': setTarget(r, +i); break;
       case 'equip': equip(r, ore); break;
+      case 'unequip-ore': {
+        const oreIdx = museumSlots[r].findIndex(s => s?.ore.name === ore);
+        if (oreIdx !== -1) { museumSlots[r][oreIdx] = null; activePreset = null; persistSlots(); rerender(); }
+        break;
+      }
       case 'clear-slot': clearSlot(r, +i); break;
       case 'clear-all': clearAll(); break;
       case 'dd-toggle': openDropdown = openDropdown === dd ? null : dd; rerender(); break;

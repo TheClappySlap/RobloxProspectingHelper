@@ -25,13 +25,15 @@ function buildHead(ref) {
   const loadOpts = [`<option value="">Load…</option>`]
     .concat(saved.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`)).join('');
   return `<div class="build-head">
-    <input class="build-name" data-ref="${ref}" value="${escapeHtml(state.names[ref])}" aria-label="Build name">
-    <div class="build-acts">
-      <select class="load-sel build-load-sel" data-ref="${ref}" title="Load a saved build">${loadOpts}</select>
+    <div class="bh-top">
+      <input class="build-name" data-ref="${ref}" value="${escapeHtml(state.names[ref])}" aria-label="Build name">
       <button class="mini bh-presets" data-act="presets" data-ref="${ref}" title="Load a meta build into this build">📋 Meta Builds</button>
+    </div>
+    <div class="bh-acts">
+      <select class="load-sel" data-ref="${ref}" title="Load a saved build">${loadOpts}</select>
       <button class="mini" data-act="save" data-ref="${ref}">Save</button>
       <button class="mini" data-act="reset" data-ref="${ref}">Reset</button>
-      <button class="mini bulk-btn" data-act="bulk" data-ref="${ref}" title="Bulk-edit star tier, roll % and mutation for all accessories">✏️ Edit All Gear</button>
+      <button class="mini bulk-btn" data-act="bulk" data-ref="${ref}" title="Bulk-edit star tier, roll % and mutation for all accessories">✏️ Edit All</button>
     </div>
   </div>`;
 }

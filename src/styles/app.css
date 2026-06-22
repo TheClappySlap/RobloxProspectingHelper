@@ -498,7 +498,14 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 .cfg-head h3 { font-size: 1rem; }
 .cfg-rarity { font-size: .64rem; text-transform: uppercase; letter-spacing: .5px; }
 .rs-hint { text-transform: none; letter-spacing: 0; font-size: .63rem; color: var(--muted-2); font-weight: 400; }
-.chip[data-mut] { --rc: var(--accent); }
+/* Mutation chips use their own color (--mc set inline) */
+.chip[data-mut] { --mc: var(--accent); }
+.chip[data-mut]:not(.active):hover { color: var(--mc); outline-color: color-mix(in srgb, var(--mc) 55%, transparent); }
+.chip[data-mut].active { background: color-mix(in srgb, var(--mc) 16%, var(--card)); border-color: var(--mc); color: var(--mc); outline-color: var(--mc); }
+.chip[data-mut].active span { color: var(--mc); }
+/* Star chips — compact, dense */
+.star-chip { font-size: .72rem; padding: 4px 7px; letter-spacing: -.02em; }
+.sc-stars { font-size: .6em; opacity: .75; letter-spacing: -.06em; margin-left: 2px; }
 
 .roll-table { width: 100%; border-collapse: collapse; font-size: .72rem; }
 .roll-table td { padding: 4px 3px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
@@ -667,12 +674,13 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 .compare-switch input:checked + .cs-track .cs-thumb { transform: translateX(16px); background: var(--accent); }
 
 /* --- Build head (name + load/save/reset) ---------------------------------- */
-.build-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.build-name { font: inherit; font-weight: 700; font-size: 1rem; background: transparent; border: 1px solid transparent; border-radius: 7px; padding: 4px 8px; color: var(--text); max-width: 220px; min-width: 0; }
+.build-head { display: flex; flex-direction: column; gap: 6px; }
+.bh-top { display: flex; align-items: center; gap: 8px; }
+.bh-acts { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+.build-name { font: inherit; font-weight: 700; font-size: 1rem; background: transparent; border: 1px solid transparent; border-radius: 7px; padding: 4px 8px; color: var(--text); flex: 1; min-width: 0; }
 .build-name:hover { border-color: var(--line); }
 .build-name:focus { outline: none; border-color: var(--accent); background: var(--card); }
-.build-acts { display: flex; gap: 5px; align-items: center; }
-.load-sel { font: inherit; font-size: .72rem; padding: 4px 6px; border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--muted); cursor: pointer; max-width: 96px; }
+.load-sel { font: inherit; font-size: .72rem; padding: 4px 6px; border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--muted); cursor: pointer; max-width: 110px; }
 
 /* --- Compare workspace: [gearA] [statsA] [center] [statsB] [gearB] -------- */
 .compare-5col {
@@ -705,7 +713,6 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 .cmp-col .ring-grid { gap: 8px; }
 
 /* Color touches */
-.chip[data-mut].active span { color: #fff; }
 .eq-clear { display: block; margin: 14px auto 0; }
 .tip-mut { font-weight: 700; }
 .tip-ench { color: #c9a3ff; font-size: .72rem; font-style: italic; padding: 1px 0; }

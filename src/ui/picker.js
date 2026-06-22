@@ -124,9 +124,10 @@ function renderTabs() {
   const hasLimited = getItems(slot().cat).some(i => i.limited);
   if (!hasLimited) { dom.tabs.style.display = 'none'; return; }
   dom.tabs.style.display = '';
+  const base = s.label + 's';
   dom.tabs.innerHTML = [
-    { ltd: false, label: 'All' },
-    { ltd: true,  label: '✦ Limited' },
+    { ltd: false, label: base },
+    { ltd: true,  label: `Limited ${base}` },
   ].map(t => `<button class="pop-tab${limitedOnly === t.ltd ? ' active' : ''}" data-ltd="${t.ltd}">${t.label}</button>`).join('');
   dom.tabs.querySelectorAll('.pop-tab').forEach(b => {
     b.addEventListener('click', () => {
@@ -278,11 +279,11 @@ function renderConfig() {
   }
 
   if (s.kind === 'accessory') {
-    const starChips = [5, 6].map(s => `<button class="chip${cfg.starTier === s ? ' active' : ''}" data-star="${s}">${'★'.repeat(s)}</button>`).join('');
+    const starChips = [1,2,3,4,5,6].map(n => `<button class="chip star-chip${cfg.starTier === n ? ' active' : ''}" data-star="${n}" title="${n} Stars">${n}<span class="sc-stars">${'★'.repeat(n)}</span></button>`).join('');
     const presets = QUALITY_PRESETS.map(q => `<button class="chip${Math.round(overallQuality(item, cfg)) === q ? ' active' : ''}" data-q="${q}">${q}%</button>`).join('');
     const muts = [`<button class="chip${!cfg.mutation ? ' active' : ''}" data-mut="">None</button>`]
       .concat(getMutations().slice().sort((a, b) => a.multiplier - b.multiplier)
-        .map(m => `<button class="chip${cfg.mutation === m.id ? ' active' : ''}" data-mut="${m.id}"><span style="color:${mutationColor(m.id)}">${escapeHtml(m.name)}</span> ×${m.multiplier}</button>`)).join('');
+        .map(m => `<button class="chip${cfg.mutation === m.id ? ' active' : ''}" data-mut="${m.id}" style="--mc:${mutationColor(m.id)}"><span>${escapeHtml(m.name)}</span> ×${m.multiplier}</button>`)).join('');
 
     // Per-stat roll table with ranges.
     const lines = rolledAccessoryStats(item, cfg);
@@ -305,9 +306,10 @@ function renderConfig() {
         </tr>`).join('');
 
     html += `
-      <div class="cfg-row"><label>Quality <b class="qty-label">${Math.round(overallQuality(item, cfg))}%  ★${cfg.starTier}</b></label>
+      <div class="cfg-row"><label>Stars</label><div class="chip-row">${starChips}</div></div>
+      <div class="cfg-row"><label>Quality <b class="qty-label">${Math.round(overallQuality(item, cfg))}%</b></label>
         <input class="roll-slider" type="range" min="1" max="${item.overRollable ? 200 : 100}" value="${Math.round(cfg.rollPct)}">
-        <div class="chip-row">${starChips}<span class="chip-div"></span>${presets}</div></div>
+        <div class="chip-row">${presets}</div></div>
       <div class="cfg-row"><label>Mutation</label><div class="chip-row wrap">${muts}</div></div>
       <div class="cfg-row"><label>Stat rolls <span class="rs-hint">individual %, averages to overall</span></label>
         <table class="roll-table">${rows}</table></div>`;

@@ -1,0 +1,30 @@
+{
+  "name": "robloxprospectinghelper",
+  "version": "1.0.0",
+  "description": "A clean, build-free web app for planning and (soon) comparing builds in the Roblox game **Prospecting**. Pick your kit, see your stats update live.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheClappySlap/RobloxProspectingHelper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/TheClappySlap/RobloxProspectingHelper/issues"
+  },
+  "homepage": "https://github.com/TheClappySlap/RobloxProspectingHelper#readme",
+  "dependencies": {
+    "chokidar": "^5.0.0",
+    "jimp": "^1.6.1",
+    "opencv-wasm": "^4.3.0-10",
+    "tesseract.js": "^7.0.0"
+  }
+}
