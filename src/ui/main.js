@@ -7,7 +7,7 @@
 import {
   state, load, subscribe,
   resetBuild, addBuild, loadSavedBuild, deleteSavedBuild, setName,
-  setCompareMode, setTab, copyBuild, swapBuilds,
+  setCompareMode, setTab, copyBuild, swapBuilds, clearAllGear,
 } from '../core/store.js';
 import { renderSlotBoard } from './slotBoard.js';
 import { renderBuffsPanel } from './buffsPanel.js';
@@ -31,9 +31,10 @@ function buildHead(ref) {
     </div>
     <div class="bh-acts">
       <select class="load-sel" data-ref="${ref}" title="Load a saved build">${loadOpts}</select>
-      <button class="mini" data-act="save" data-ref="${ref}">Save</button>
-      <button class="mini" data-act="reset" data-ref="${ref}">Reset</button>
-      <button class="mini bulk-btn" data-act="bulk" data-ref="${ref}" title="Bulk-edit star tier, roll % and mutation for all accessories">✏️ Edit All</button>
+      <button class="bh-btn bh-save" data-act="save" data-ref="${ref}" title="Save this build">💾 Save</button>
+      <button class="bh-btn bh-reset" data-act="reset" data-ref="${ref}" title="Reset gear + buffs">↺ Reset</button>
+      <button class="bh-btn bh-unequip" data-act="unequip-all" data-ref="${ref}" title="Unequip all gear slots">✕ Unequip All</button>
+      <button class="bh-btn bh-bulk" data-act="bulk" data-ref="${ref}" title="Bulk-edit star tier, roll % and mutation for all accessories">✏️ Edit All</button>
     </div>
   </div>`;
 }
@@ -114,6 +115,8 @@ function wireHeads(root) {
       if (confirm('Reset this build (gear + buffs)?')) resetBuild(ref);
     } else if (btn.dataset.act === 'bulk') {
       openBulkEditor(ref);
+    } else if (btn.dataset.act === 'unequip-all') {
+      if (confirm('Unequip all gear from this build?')) clearAllGear(ref);
     } else if (btn.dataset.act === 'presets') {
       openPresetsModal(ref);
     }

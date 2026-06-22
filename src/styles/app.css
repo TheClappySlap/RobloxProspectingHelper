@@ -421,6 +421,11 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 .pop-tab { font: inherit; font-size: .73rem; font-weight: 700; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--line); background: var(--card-2); color: var(--muted); cursor: pointer; }
 .pop-tab:hover { color: var(--text); }
 .pop-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; outline: 2px solid var(--accent); outline-offset: 2px; }
+.roll-ctrl { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.roll-ctrl .roll-slider { flex: 1; margin-top: 0; }
+.roll-num { font: inherit; font-size: .73rem; font-weight: 600; width: 40px; padding: 3px 5px; border-radius: 5px; border: 1px solid var(--line); background: var(--card-2); color: var(--text); text-align: center; appearance: textfield; -moz-appearance: textfield; }
+.roll-num::-webkit-inner-spin-button, .roll-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.roll-num:focus { outline: none; border-color: var(--accent); background: var(--card); }
 .roll-slider { width: 100%; margin-top: 8px; accent-color: var(--accent); }
 .cfg-passive { font-size: .76rem; color: var(--muted); background: var(--card-2); padding: 7px 10px; border-radius: 7px; margin: 0 0 10px; }
 
@@ -499,19 +504,21 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 .cfg-head h3 { font-size: 1rem; }
 .cfg-rarity { font-size: .64rem; text-transform: uppercase; letter-spacing: .5px; }
 .rs-hint { text-transform: none; letter-spacing: 0; font-size: .63rem; color: var(--muted-2); font-weight: 400; }
-/* Mutation chips use their own color (--mc set inline) */
-/* Mutation chips — use their own color (--mc set inline on button) */
+/* Mutation chips — --mc is set inline; always show tinted color even unselected */
 .chip[data-mut] { --mc: var(--accent); }
-.chip[data-mut]:not([data-grad]):not(.active):hover { color: var(--mc); outline-color: color-mix(in srgb, var(--mc) 55%, transparent); }
+.chip[data-mut]:not([data-grad]):not(.active) { color: color-mix(in srgb, var(--mc) 65%, var(--muted)); border-color: color-mix(in srgb, var(--mc) 22%, var(--line)); }
+.chip[data-mut]:not([data-grad]):not(.active):hover { color: var(--mc); border-color: color-mix(in srgb, var(--mc) 55%, var(--line)); background: color-mix(in srgb, var(--mc) 6%, var(--card)); }
 .chip[data-mut]:not([data-grad]).active { background: color-mix(in srgb, var(--mc) 16%, var(--card)); border-color: var(--mc); color: var(--mc); outline-color: var(--mc); }
 .chip[data-mut].active span { color: var(--mc); }
-/* Gradient mutation chips (prismatic, festive) */
+/* Gradient mutation chips (prismatic, festive) — show faint tint when unselected */
+.chip[data-grad]:not(.active) { background: color-mix(in srgb, var(--mc) 10%, var(--card)); border-color: color-mix(in srgb, var(--mc) 28%, var(--line)); color: color-mix(in srgb, var(--mc) 70%, var(--muted)); }
 .chip[data-grad]:not(.active):hover { background: var(--mc-grad); color: #fff; border-color: transparent; outline: none; }
 .chip[data-grad].active { background: var(--mc-grad) !important; color: #fff !important; border-color: transparent !important; outline: 2px solid var(--mc) !important; outline-offset: 2px !important; }
 .chip[data-grad].active span { color: #fff !important; }
 /* Enchant chips — same pattern with --ec */
 .chip[data-ench] { --ec: var(--accent); }
-.chip[data-ench]:not([data-ench=""]):not(.active):hover { color: var(--ec); outline-color: color-mix(in srgb, var(--ec) 55%, transparent); }
+.chip[data-ench]:not([data-ench=""]):not(.active) { color: color-mix(in srgb, var(--ec) 65%, var(--muted)); border-color: color-mix(in srgb, var(--ec) 22%, var(--line)); }
+.chip[data-ench]:not([data-ench=""]):not(.active):hover { color: var(--ec); border-color: color-mix(in srgb, var(--ec) 55%, var(--line)); background: color-mix(in srgb, var(--ec) 6%, var(--card)); }
 .chip[data-ench]:not([data-ench=""]).active { background: color-mix(in srgb, var(--ec) 16%, var(--card)); border-color: var(--ec); color: var(--ec); outline-color: var(--ec); }
 /* Star chips — show literal ★ characters, compact */
 .star-chip { font-size: .72rem; padding: 4px 7px; letter-spacing: .04em; }
@@ -690,6 +697,16 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 .build-name:hover { border-color: var(--line); }
 .build-name:focus { outline: none; border-color: var(--accent); background: var(--card); }
 .load-sel { font: inherit; font-size: .72rem; padding: 4px 6px; border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--muted); cursor: pointer; max-width: 110px; }
+/* Build head action buttons — semantic color per action */
+.bh-btn { font: inherit; font-size: .72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; border: 1px solid; cursor: pointer; white-space: nowrap; }
+.bh-save { background: color-mix(in srgb, #22c55e 10%, var(--card)); border-color: #22c55e; color: #22c55e; }
+.bh-save:hover { background: color-mix(in srgb, #22c55e 20%, var(--card)); }
+.bh-reset { background: color-mix(in srgb, #f59e0b 10%, var(--card)); border-color: #f59e0b; color: #f59e0b; }
+.bh-reset:hover { background: color-mix(in srgb, #f59e0b 20%, var(--card)); }
+.bh-unequip { background: color-mix(in srgb, #ef4444 10%, var(--card)); border-color: #ef4444; color: #ef4444; }
+.bh-unequip:hover { background: color-mix(in srgb, #ef4444 20%, var(--card)); }
+.bh-bulk { background: color-mix(in srgb, var(--accent) 10%, var(--card)); border-color: var(--accent); color: var(--accent); }
+.bh-bulk:hover { background: color-mix(in srgb, var(--accent) 20%, var(--card)); }
 
 /* --- Compare workspace: [gearA] [statsA] [center] [statsB] [gearB] -------- */
 .compare-5col {

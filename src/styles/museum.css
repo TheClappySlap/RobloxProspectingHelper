@@ -52,7 +52,57 @@
 }
 .mv-preset:hover { background: var(--bg-2); color: var(--text); }
 .mv-preset.active { background: color-mix(in srgb, var(--accent) 10%, var(--card)); color: var(--accent); border-color: var(--line); }
-.mv-preset.priority-fill { font-style: italic; }
+/* meta build type groups in sidebar */
+.mv-meta-group { margin-bottom: 4px; }
+.mv-meta-type-hd {
+  font-size: 9px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; padding: 5px 2px 2px;
+}
+.mv-meta-dot {
+  display: inline-block; width: 7px; height: 7px;
+  border-radius: 50%; flex-shrink: 0;
+}
+
+/* OR alternative ore chips inside filled slots */
+.mv-slot-alts {
+  min-height: 26px; margin-top: 7px;
+  display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow-x: auto;
+}
+.mv-slot-alts:not(:empty) { padding-top: 7px; border-top: 1px solid var(--line-soft); }
+.mv-alt-label {
+  font-size: 10px; color: var(--muted-2); font-weight: 600; flex-shrink: 0;
+}
+.mv-alt-chip {
+  font: inherit; font-size: 10px; font-weight: 600;
+  padding: 2px 7px; border-radius: 3px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--muted);
+  cursor: pointer; white-space: nowrap; transition: color .1s, border-color .1s;
+}
+.mv-alt-chip:hover { color: var(--text); border-color: var(--slot-color); }
+/* Invisible spacer rows — keep mutation stat section at a fixed 3-row height */
+.mv-eff.mv-eff-spacer { visibility: hidden; }
+/* ×2 badge on Treasured luck in slot stat rows */
+.mv-2x { font-size: 9px; font-weight: 700; color: #5dd966; margin-left: 2px; vertical-align: middle; }
+/* Placeholder row when no mutation selected — stable height, muted appearance */
+.mv-eff.mv-eff-muted { opacity: 0.45; }
+/* Mutate All chips */
+.mv-mutall-chips { display: flex; flex-wrap: wrap; gap: 3px; }
+.mv-mutall-chip {
+  font: inherit; font-size: 10px; font-weight: 700;
+  padding: 3px 7px; border-radius: 4px;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  background: color-mix(in srgb, currentColor 8%, var(--card));
+  cursor: pointer; white-space: nowrap; line-height: 1.4;
+  transition: background .1s, border-color .1s;
+}
+.mv-mutall-chip:hover { background: color-mix(in srgb, currentColor 20%, var(--card)); }
+.mv-mutall-chip.mv-mutall-none { color: var(--muted); border-color: var(--line); background: var(--card-2); }
+.mv-mutall-chip.mv-mutall-none:hover { background: var(--bg-2); color: var(--text); }
+/* Mutation stat boosts legend */
+.mv-mut-legend { display: flex; flex-direction: column; gap: 3px; }
+.mv-mut-row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.mv-mut-name { font-size: 10px; font-weight: 700; flex-shrink: 0; }
+.mv-mut-stats { font-size: 10px; color: var(--muted); text-align: right; }
 
 .mv-save-row { display: flex; gap: 6px; margin-bottom: 10px; }
 .mv-input {
@@ -120,7 +170,7 @@
 /* grid + rarity sections */
 .mv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 22px; align-items: start; }
 .mv-rarity { display: flex; flex-direction: column; }
-.mv-rarity-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.mv-rarity-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; min-height: 48px; }
 .mv-rarity-title { font-family: 'Space Grotesk', var(--font); font-size: 19px; font-weight: 700; font-style: italic; }
 .mv-rarity-summary { font-size: 11px; font-weight: 700; display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
 .mv-rarity-summary span {
@@ -129,7 +179,7 @@
 }
 
 /* slots */
-.mv-slots { display: flex; gap: 10px; margin-bottom: 12px; }
+.mv-slots { display: flex; gap: 10px; margin-bottom: 12px; min-height: 200px; align-items: flex-start; }
 .mv-slot { flex: 1; min-width: 0; border: 2px solid var(--line); border-radius: 7px; display: flex; flex-direction: column; position: relative; }
 .mv-slot.empty {
   background: var(--bg); border-style: dashed; min-height: 42px;

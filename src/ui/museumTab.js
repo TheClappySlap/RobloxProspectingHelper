@@ -8,9 +8,10 @@
 // ---------------------------------------------------------------------------
 
 import {
-  RARITIES, ORES, MUTATIONS, MUTATION_MULT, STAT_CONFIG, STAT_ORDER, bestMutationFor, museumMutationColor,
+  RARITIES, ORES, MUTATIONS, MUTATION_MULT, STAT_CONFIG, STAT_ORDER, museumMutationColor,
 } from '../core/museumData.js';
 import { escapeHtml } from './helpers.js';
+import { META_BUILDS } from '../../data/metaBuilds.js';
 
 // --- persistence keys -------------------------------------------------------
 const LS_SLOTS = 'prospectingMuseum_current';
@@ -28,36 +29,9 @@ let activePreset = null;
 let mountRoot = null;
 let localBuilds = readJSON(LS_BUILDS, {});
 
-const PRESETS = [
-  { id: 'luck',         label: 'Max Luck',     icon: '🍀', target: 'luck' },
-  { id: 'capacity',     label: 'Max Capacity', icon: '🎒', target: 'capacity' },
-  { id: 'dig_speed',    label: 'Dig Speed',    icon: '⛏',  target: 'dig_speed' },
-  { id: 'dig_strength', label: 'Dig Strength', icon: '💪', target: 'dig_strength' },
-  { id: 'shake_amount', label: 'Shake Amount', icon: '💥', target: 'shake_amount' },
-  { id: 'mod_boost',    label: 'Mod Boost',    icon: '✨', target: 'mod_boost' },
-  { id: 'sell_boost',   label: 'Sell Boost',   icon: '💰', target: 'sell_boost' },
-];
-
-const PRIORITY_CHAINS = [
-  {
-    id: 'luck_build',
-    label: 'Luck Build',
-    icon: '⚡',
-    chain: ['luck', 'capacity', 'dig_strength', 'shake_amount', 'shake_speed', 'dig_speed', 'mod_boost'],
-  },
-  {
-    id: 'hybrid_build',
-    label: 'Hybrid Build',
-    icon: '⚡',
-    chain: ['mod_boost', 'luck', 'capacity', 'dig_strength', 'shake_amount', 'shake_speed'],
-  },
-  {
-    id: 'size_build',
-    label: 'Size Build',
-    icon: '⚡',
-    chain: ['size_boost', 'luck', 'capacity', 'shake_amount', 'dig_strength'],
-  },
-];
+// Meta builds that have museum data, grouped by type
+const MUSEUM_META = META_BUILDS.filter(b => b.museum);
+const META_TYPES = [...new Set(MUSEUM_META.map(b => b.type))];
 
 // --- helpers ----------------------------------------------------------------
 function readJSON(key, fallback) {
@@ -99,12 +73,17 @@ function oreHidden(ore) {
   return ore.effects.length > 0 && ore.effects.every(e => hiddenStats.has(e.stat));
 }
 
+// Treasured gives 2× the standard per-rarity luck multiplier
+function mutBoost(mutId, stat, rid) {
+  return MUTATION_MULT[rid] * (mutId === 'treasured' && stat === 'luck' ? 2 : 1);
+}
+
 function rarityTotals(rid) {
   const t = {};
   museumSlots[rid].forEach(s => {
     if (!s) return;
     s.ore.effects.forEach(e => { t[e.stat] = (t[e.stat] || 0) + e.max; });
-    if (s.mutation) s.mutation.stats.forEach(st => { t[st] = (t[st] || 0) + MUTATION_MULT[rid]; });
+    if (s.mutation) s.mutation.stats.forEach(st => { t[st] = (t[st] || 0) + mutBoost(s.mutation.id, st, rid); });
   });
   return t;
 }
@@ -117,73 +96,85 @@ function grandTotals() {
   return t;
 }
 
-// --- autofill (corrected) ---------------------------------------------------
-function runAutofill(preset) {
-  const cfg = PRESETS.find(p => p.id === preset);
-  if (!cfg) return;
-  RARITIES.forEach(r => { museumSlots[r.id] = Array(r.slots).fill(null); });
-  const mut = bestMutationFor(cfg.target);
-  RARITIES.forEach(r => {
-    const candidates = ORES[r.id]
-      .map(o => {
-        const hit = o.effects.find(e => e.stat === cfg.target);
-        if (!hit) return null;
-        const others = o.effects.filter(e => e !== hit).reduce((s, e) => s + e.max, 0);
-        return { ore: o, val: hit.max, others };
-      })
-      .filter(Boolean)
-      .sort((a, b) => (b.val - a.val) || (b.others - a.others)); // target first, then best secondaries
-    for (let i = 0; i < r.slots && i < candidates.length; i++) {
-      museumSlots[r.id][i] = { ore: candidates[i].ore, mutation: mut };
-    }
-    // Fewer matching ores than slots → leave the rest EMPTY (don't equip junk).
-  });
-  activePreset = preset;
-  targetSlot.active = false;
-  persistSlots();
-  rerender();
+// --- meta build parsing and fill -------------------------------------------
+
+// Find the first mutation whose label appears in str.
+function parseMutFromString(str) {
+  if (!str) return null;
+  for (const mut of MUTATIONS) {
+    if (str.includes(mut.label)) return mut;
+  }
+  return null;
 }
 
-// --- priority-chain autofill ------------------------------------------------
-function runPriorityFill(chainId) {
-  const cfg = PRIORITY_CHAINS.find(c => c.id === chainId);
-  if (!cfg) return;
+// Parse a meta build's museum object into the same slot format museumSlots uses.
+// Each entry in build.museum[rarity] is a slot string with this notation:
+//   "[STAT_LETTERS] ORE_NAME KG"           — single ore, optional letter prefix
+//   "ORE_A KG | ORE_B KG | ..."            — OR: first is primary, rest are alts
+//   "[LETTERS] pick N: ORE_A | ORE_B | ..." — fill N slots from this pool
+//   "ORE‡ KG"                              — ‡ marks ores that use dagger mutation
+// Ore names are matched against the current rarity's ORES pool (longest-first to
+// avoid substring collisions, e.g. "Bone" vs "Dragon Bone").
+function parseMuseumBuild(build) {
+  if (!build?.museum) return null;
+  const modStr = build.museum.modifier || '';
 
-  RARITIES.forEach(r => { museumSlots[r.id] = Array(r.slots).fill(null); });
-  const mut = bestMutationFor(cfg.chain[0]);
+  // Primary mutation: first mutation label found anywhere in the modifier string.
+  const primaryMut = parseMutFromString(modStr);
 
-  // Process rarities highest → lowest (best slots get first pick).
-  const rarityOrder = ['exotic', 'mythic', 'legendary', 'epic', 'rare', 'uncommon', 'common'];
-  const assignedOres = new Set(); // track globally so no ore is double-slotted
+  // Dagger mutation: mutation named after the first ‡ in the modifier string.
+  let daggerMut = null;
+  const di = modStr.indexOf('‡');
+  if (di >= 0) daggerMut = parseMutFromString(modStr.slice(di + 1));
 
-  rarityOrder.forEach(rid => {
-    const r = RARITIES.find(r => r.id === rid);
-    if (!r) return;
-    const oresForRarity = ORES[rid] || [];
+  const result = {};
+  RARITIES.forEach(r => {
+    result[r.id] = Array(r.slots).fill(null);
+    const entries = build.museum[r.id];
+    if (!Array.isArray(entries)) return;
 
-    for (let slotIdx = 0; slotIdx < r.slots; slotIdx++) {
-      // Walk priority chain: find best unassigned ore for the first matching stat.
-      let chosen = null;
-      for (const stat of cfg.chain) {
-        // All ores of this rarity that (a) have this stat with a positive value
-        // and (b) haven't been assigned yet — pick the one with the highest value.
-        const best = oresForRarity
-          .filter(o => !assignedOres.has(o.name) && o.effects.some(e => e.stat === stat && e.max > 0))
-          .sort((a, b) => {
-            const va = a.effects.find(e => e.stat === stat)?.max ?? 0;
-            const vb = b.effects.find(e => e.stat === stat)?.max ?? 0;
-            return vb - va;
-          })[0];
-        if (best) { chosen = best; break; }
-      }
-      if (chosen) {
-        museumSlots[rid][slotIdx] = { ore: chosen, mutation: mut };
-        assignedOres.add(chosen.name);
+    // Longest-first prevents "Bone" matching inside "Dragon Bone" etc.
+    const sortedOres = [...ORES[r.id]].sort((a, b) => b.name.length - a.name.length);
+
+    let slotIdx = 0;
+    for (const entry of entries) {
+      if (slotIdx >= r.slots) break;
+
+      // "pick N:" prefix means this entry fills N consecutive slots from its pool.
+      const pickMatch = entry.match(/^[A-Z+\-]*\s*pick\s+(\d+):\s*(.*)/i);
+      const pickCount = pickMatch ? parseInt(pickMatch[1]) : 1;
+      const body = pickMatch ? pickMatch[2] : entry;
+
+      const parts = body.split(/\s*\|\s*/).map(p => p.trim()).filter(Boolean);
+      const oreOpts = parts.map(part => {
+        const hasDagger = part.includes('‡');
+        const clean = part.replace(/‡/g, '').trim();
+        const ore = sortedOres.find(o => clean.includes(o.name));
+        return ore ? { ore, hasDagger } : null;
+      }).filter(Boolean);
+
+      for (let p = 0; p < pickCount && slotIdx < r.slots; p++, slotIdx++) {
+        const primary = oreOpts[p] ?? oreOpts[0];
+        if (!primary) continue;
+        const mut = primary.hasDagger ? (daggerMut ?? primaryMut) : primaryMut;
+        const alts = oreOpts.filter((_, ai) => ai !== p).map(opt => ({
+          ore: opt.ore,
+          mutation: opt.hasDagger ? (daggerMut ?? primaryMut) : primaryMut,
+        }));
+        result[r.id][slotIdx] = { ore: primary.ore, mutation: mut, alts: alts.length ? alts : undefined };
       }
     }
   });
+  return result;
+}
 
-  activePreset = chainId;
+function runMetaBuildFill(buildId) {
+  const build = META_BUILDS.find(b => b.id === buildId);
+  if (!build?.museum) return;
+  const parsed = parseMuseumBuild(build);
+  if (!parsed) return;
+  RARITIES.forEach(r => { museumSlots[r.id] = parsed[r.id] || Array(r.slots).fill(null); });
+  activePreset = buildId;
   targetSlot.active = false;
   persistSlots();
   rerender();
@@ -195,10 +186,17 @@ function clearAll() {
   activePreset = null; targetSlot.active = false; openDropdown = null;
   persistSlots(); rerender();
 }
+function mutateAll(mutId) {
+  const mut = mutId ? MUTATIONS.find(m => m.id === mutId) : null;
+  RARITIES.forEach(r => { museumSlots[r.id].forEach(s => { if (s) s.mutation = mut; }); });
+  activePreset = null; persistSlots(); rerender();
+}
 function setTarget(rarity, idx) {
   targetSlot = { active: true, rarity, idx }; openDropdown = null; rerender();
 }
 function equip(rarity, oreName) {
+  // Prevent the same ore appearing in two slots of the same rarity
+  if (museumSlots[rarity].some(s => s?.ore.name === oreName)) return;
   if (!targetSlot.active || targetSlot.rarity !== rarity) {
     const empty = museumSlots[rarity].findIndex(s => s === null);
     if (empty === -1) return;
@@ -269,25 +267,73 @@ function slotHtml(r, slot, idx) {
       <span class="mv-slot-empty">${isTarget ? 'Pick from table ↓' : '+ Select Ore'}</span></div>`;
   }
   const ddId = `dd-${r.id}-${idx}`;
+  // Simplified display precision: 2dp for low-value rarities, 3dp for epic+
+  const precision = ['common', 'uncommon', 'rare'].includes(r.id) ? 2 : 3;
+
   const oreEffs = slot.ore.effects.map(e =>
     `<div class="mv-eff"><span class="${STAT_CONFIG[e.stat].css}">${STAT_CONFIG[e.stat].label}</span>
      <span class="mv-eff-v">${e.max < 0 ? '−' : '+'}${Math.abs(e.max).toFixed(2)}x</span></div>`).join('');
-  let mutEffs = '';
+
+  // Mutation stats — always padded to MAX_MUT_ROWS so slot height is stable regardless of mutation choice
+  const MAX_MUT_ROWS = 3;
+  const mutRows = [];
   if (slot.mutation) {
-    mutEffs = slot.mutation.stats.map(st =>
-      `<div class="mv-eff"><span class="${STAT_CONFIG[st].css}">${STAT_CONFIG[st].label}</span>
-       <span class="mv-eff-v">+${MUTATION_MULT[r.id].toFixed(3)}x</span></div>`).join('');
+    slot.mutation.stats.forEach(st => {
+      const boost = mutBoost(slot.mutation.id, st, r.id);
+      const is2x = slot.mutation.id === 'treasured' && st === 'luck';
+      const labelHtml = is2x
+        ? `${STAT_CONFIG[st].label} <span class="mv-2x">×2</span>`
+        : STAT_CONFIG[st].label;
+      mutRows.push(`<div class="mv-eff"><span class="${STAT_CONFIG[st].css}">${labelHtml}</span>
+        <span class="mv-eff-v">+${boost.toFixed(precision)}x</span></div>`);
+    });
+  } else {
+    mutRows.push(`<div class="mv-eff mv-eff-muted"><span class="mv-faint">— no modifier</span></div>`);
   }
+  while (mutRows.length < MAX_MUT_ROWS) {
+    mutRows.push(`<div class="mv-eff mv-eff-spacer"></div>`);
+  }
+  const mutStatRows = mutRows.join('');
+
+  // Dropdown: show "Luck×2" for Treasured so users see the bonus before selecting
   let menu = `<div class="cd-item" data-act="set-mut" data-r="${r.id}" data-i="${idx}" data-mut="">
       <span class="cd-name" style="color:var(--muted-2)">No Modifier</span></div>`;
   MUTATIONS.forEach(m => {
     const col = museumMutationColor(m.id);
-    const effs = m.stats.map(st => `<span class="${STAT_CONFIG[st].css}">${STAT_CONFIG[st].label}</span>`).join(' + ');
+    const effs = m.stats.map(st => {
+      const is2x = m.id === 'treasured' && st === 'luck';
+      return `<span class="${STAT_CONFIG[st].css}">${is2x ? `${STAT_CONFIG[st].label}×2` : STAT_CONFIG[st].label}</span>`;
+    }).join(' + ');
     menu += `<div class="cd-item" data-act="set-mut" data-r="${r.id}" data-i="${idx}" data-mut="${m.id}">
       <span class="cd-name" style="color:${col}">${escapeHtml(m.label)}</span><span class="cd-effs">${effs}</span></div>`;
   });
   const mutColor = slot.mutation ? museumMutationColor(slot.mutation.id) : null;
   const mutLabel = slot.mutation ? slot.mutation.label : 'Select Modifier';
+
+  // OR alternatives: only unequipped ores from this rarity.
+  // Preset-filled slots use slot.alts (explicit alternatives). Manual slots use same primary stat.
+  const equippedInRarity = new Set(museumSlots[r.id].map(s => s?.ore.name).filter(Boolean));
+  let altChips = [];
+  if (slot.alts?.length) {
+    altChips = slot.alts
+      .map((alt, oi) => ({ alt, oi }))
+      .filter(({ alt }) => !equippedInRarity.has(alt.ore.name))
+      .slice(0, 4)
+      .map(({ alt, oi }) =>
+        `<button class="mv-alt-chip" data-act="use-alt" data-r="${r.id}" data-i="${idx}" data-alt="${oi}">${escapeHtml(alt.ore.name)}</button>`
+      );
+  } else if (slot.ore.effects.length > 0) {
+    const primaryStat = slot.ore.effects[0].stat;
+    altChips = ORES[r.id]
+      .filter(o => o.name !== slot.ore.name && !equippedInRarity.has(o.name) && o.effects[0]?.stat === primaryStat)
+      .slice(0, 4)
+      .map(o =>
+        `<button class="mv-alt-chip" data-act="equip-alt" data-r="${r.id}" data-i="${idx}" data-ore="${escapeHtml(o.name)}">${escapeHtml(o.name)}</button>`
+      );
+  }
+  // Always render alts container — min-height in CSS keeps slot height stable even when empty
+  const altsHtml = `<div class="mv-slot-alts">${altChips.length ? `<span class="mv-alt-label">or</span>${altChips.join('')}` : ''}</div>`;
+
   return `
     <div class="mv-slot filled" style="--slot-color:${r.color}">
       <button class="mv-slot-clear" data-act="clear-slot" data-r="${r.id}" data-i="${idx}" title="Remove">✕</button>
@@ -300,7 +346,8 @@ function slotHtml(r, slot, idx) {
         <div class="cd-menu">${menu}</div>
       </div>
       <div class="mv-slot-group"><div class="mv-slot-glabel">Ore Stats</div><div class="mv-effs">${oreEffs}</div></div>
-      ${slot.mutation ? `<div class="mv-slot-group"><div class="mv-slot-glabel">Mutation Stats</div><div class="mv-effs">${mutEffs}</div></div>` : ''}
+      <div class="mv-slot-group"><div class="mv-slot-glabel">Modifier Stats</div><div class="mv-effs">${mutStatRows}</div></div>
+      ${altsHtml}
     </div>`;
 }
 
@@ -355,7 +402,12 @@ function totalsHtml() {
   const totals = grandTotals();
   const rows = STAT_ORDER.filter(st => totals[st]).map(st => {
     const v = totals[st];
-    return `<div class="mv-stat-line ${STAT_CONFIG[st].css}"><span class="mv-stat-v">x${(1 + v).toFixed(2)}</span><span>${STAT_CONFIG[st].label}</span></div>`;
+    // Build per-rarity breakdown for hover tooltip
+    const breakdown = RARITIES
+      .map(r => { const rt = rarityTotals(r.id); return rt[st] ? `${r.id}: +${rt[st].toFixed(3)}x` : null; })
+      .filter(Boolean).join('  |  ');
+    return `<div class="mv-stat-line ${STAT_CONFIG[st].css}" title="${escapeHtml(breakdown)}">
+      <span class="mv-stat-v">x${(1 + v).toFixed(2)}</span><span>${STAT_CONFIG[st].label}</span></div>`;
   }).join('');
   return rows || `<span class="mv-faint" style="font-size:12px">No boosts active.</span>`;
 }
@@ -364,13 +416,18 @@ export function renderMuseumTab(root) {
   mountRoot = root;
   const equipped = getEquipped();
 
-  const presetBtns = PRESETS.map(p =>
-    `<button class="mv-preset ${activePreset === p.id ? 'active' : ''}" data-act="preset" data-preset="${p.id}">
-      <span>${p.icon}</span>${escapeHtml(p.label)}</button>`).join('');
-
-  const priorityBtns = PRIORITY_CHAINS.map(c =>
-    `<button class="mv-preset priority-fill ${activePreset === c.id ? 'active' : ''}" data-act="priority-fill" data-chain="${c.id}">
-      <span>${c.icon}</span>${escapeHtml(c.label)}</button>`).join('');
+  // Sidebar preset buttons — one group per build type (Luck / Hybrid / Farming)
+  const metaPresetBtns = META_TYPES.map(type => {
+    const builds = MUSEUM_META.filter(b => b.type === type);
+    const typeColor = builds[0].typeColor;
+    const btns = builds.map(b =>
+      `<button class="mv-preset ${activePreset === b.id ? 'active' : ''}" data-act="meta-fill" data-bid="${b.id}"
+         title="${escapeHtml(b.museum.modifier || b.description || '')}">
+        <span class="mv-meta-dot" style="background:${b.typeColor}"></span>${escapeHtml(b.name)}</button>`
+    ).join('');
+    return `<div class="mv-meta-group">
+      <div class="mv-meta-type-hd" style="color:${typeColor}">${escapeHtml(type)}</div>${btns}</div>`;
+  }).join('');
 
   const buildKeys = Object.keys(localBuilds);
   const buildsList = buildKeys.length
@@ -382,19 +439,22 @@ export function renderMuseumTab(root) {
         </span></div>`).join('')
     : `<div class="mv-faint" style="font-size:11px">No saved builds yet.</div>`;
 
-  const filterBar = STAT_ORDER.filter(st => st !== 'dig_amount' && st !== 'walk_speed').map(statChip).join('');
+  const filterBar = STAT_ORDER.filter(st => st !== 'dig_amount').map(statChip).join('');
   const anyHidden = hiddenStats.size > 0;
 
   root.innerHTML = `
   <div class="museum-view ${statsMin ? 'stats-min' : ''}">
     <aside class="mv-sidebar">
       <div class="mv-side-sec">
-        <div class="mv-side-label">Priority Fill</div>
-        <div class="mv-presets">${priorityBtns}</div>
+        <div class="mv-side-label">Meta Museum Builds</div>
+        <div class="mv-presets">${metaPresetBtns}</div>
       </div>
       <div class="mv-side-sec">
-        <div class="mv-side-label">Auto-Fill (Max Single Stat)</div>
-        <div class="mv-presets">${presetBtns}</div>
+        <div class="mv-side-label">Mutate All Slots</div>
+        <div class="mv-mutall-chips">
+          ${MUTATIONS.map(m => `<button class="mv-mutall-chip" data-act="mutate-all" data-mut="${m.id}" style="color:${museumMutationColor(m.id)}" title="${escapeHtml(m.label)}">${escapeHtml(m.label)}</button>`).join('')}
+          <button class="mv-mutall-chip mv-mutall-none" data-act="mutate-all" data-mut="">Clear All</button>
+        </div>
       </div>
       <div class="mv-side-sec">
         <div class="mv-side-label">Saved Builds</div>
@@ -416,7 +476,7 @@ export function renderMuseumTab(root) {
       <div class="mv-side-sec mv-math">
         <div class="mv-side-label">Modifier Math</div>
         <table class="mv-math-table">
-          <tr><th>Rarity</th><th>Base</th><th>Mut</th></tr>
+          <tr><th>Rarity</th><th>Base</th><th>Mut ×1</th></tr>
           <tr><td>Common</td><td>0.05x</td><td>0.005x</td></tr>
           <tr><td>Uncommon</td><td>0.075x</td><td>0.0075x</td></tr>
           <tr><td>Rare</td><td>0.125x</td><td>0.0125x</td></tr>
@@ -425,6 +485,20 @@ export function renderMuseumTab(root) {
           <tr><td>Mythic</td><td>0.50x</td><td>0.05x</td></tr>
           <tr><td>Exotic</td><td>1.00x</td><td>0.08x</td></tr>
         </table>
+        <div class="mv-side-label" style="margin-top:12px">Mutation Stat Boosts</div>
+        <div class="mv-mut-legend">
+          ${MUTATIONS.map(m => {
+            const col = museumMutationColor(m.id);
+            const statsStr = m.stats.map(st => {
+              const is2x = m.id === 'treasured' && st === 'luck';
+              return is2x ? `${STAT_CONFIG[st].label}×2` : STAT_CONFIG[st].label;
+            }).join(' + ');
+            return `<div class="mv-mut-row">
+              <span class="mv-mut-name" style="color:${col}">${escapeHtml(m.label)}</span>
+              <span class="mv-mut-stats">${statsStr}</span>
+            </div>`;
+          }).join('')}
+        </div>
       </div>
     </aside>
 
@@ -460,7 +534,7 @@ function wire(root) {
     // Click outside any dropdown closes the open one.
     if (openDropdown && !e.target.closest('.custom-dropdown')) { openDropdown = null; rerender(); return; }
     if (!el) return;
-    const { act, r, i, ore, dd, mut, stat, name, preset, chain } = el.dataset;
+    const { act, r, i, ore, dd, mut, stat, name } = el.dataset;
     switch (act) {
       case 'target': setTarget(r, +i); break;
       case 'equip': equip(r, ore); break;
@@ -473,8 +547,33 @@ function wire(root) {
       case 'clear-all': clearAll(); break;
       case 'dd-toggle': openDropdown = openDropdown === dd ? null : dd; rerender(); break;
       case 'set-mut': setMutation(r, +i, mut || null); break;
-      case 'preset': runAutofill(preset); break;
-      case 'priority-fill': runPriorityFill(chain); break;
+      case 'meta-fill': runMetaBuildFill(el.dataset.bid); break;
+      case 'use-alt': {
+        const slot = museumSlots[r]?.[+i];
+        if (!slot?.alts) break;
+        const ai = +el.dataset.alt;
+        const alt = slot.alts[ai];
+        if (!alt) break;
+        // Swap: the tapped alt becomes primary; the old primary moves to front of alts list.
+        const prevOre = slot.ore, prevMut = slot.mutation;
+        slot.ore = alt.ore;
+        slot.mutation = alt.mutation;
+        slot.alts = [{ ore: prevOre, mutation: prevMut }, ...slot.alts.filter((_, j) => j !== ai)];
+        activePreset = null;
+        persistSlots(); rerender();
+        break;
+      }
+      case 'equip-alt': {
+        // Replace a specific slot with an unequipped same-stat ore (manual alt chip)
+        if (museumSlots[r]?.some(s => s?.ore.name === ore)) break;
+        const oreObj = ORES[r]?.find(o => o.name === ore);
+        if (!oreObj) break;
+        const keepMut = museumSlots[r]?.[+i]?.mutation ?? null;
+        museumSlots[r][+i] = { ore: oreObj, mutation: keepMut };
+        activePreset = null; persistSlots(); rerender();
+        break;
+      }
+      case 'mutate-all': mutateAll(el.dataset.mut || null); break;
       case 'filter': toggleFilter(stat); break;
       case 'filter-reset': hiddenStats.clear(); rerender(); break;
       case 'show-hidden': (expandedHidden.has(r) ? expandedHidden.delete(r) : expandedHidden.add(r)); rerender(); break;

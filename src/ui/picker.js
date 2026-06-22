@@ -7,6 +7,14 @@
 // ---------------------------------------------------------------------------
 
 import { SLOTS, SLOT_BY_KEY, STAT_BY_KEY, STAR_MULT, RARITY_ORDER, rarityColor, rarityLabel, mutationColor, mutationGradient, enchantColor, isUniqueEquip } from '../core/config.js';
+
+function rollColor(pct) {
+  if (pct >= 100) return 'hsl(135, 65%, 52%)';
+  if (pct >= 80) return `hsl(${Math.round(75 + (pct - 80) / 20 * 60)}, 70%, 52%)`;  // 75→135
+  if (pct >= 65) return `hsl(${Math.round(45 + (pct - 65) / 15 * 30)}, 80%, 52%)`;  // 45→75
+  if (pct >= 50) return `hsl(${Math.round(5  + (pct - 50) / 15 * 40)}, 80%, 54%)`;  // 5→45
+  return 'hsl(5, 78%, 54%)';
+}
 import { state, emptySlot, getBuild, setSlot } from '../core/store.js';
 import { getItems, getItem, getMutations, enchantsFor, itemImage, getEnchant, trinketsFor } from '../core/db.js';
 import { rolledAccessoryStats, overallQuality, getToolStats } from '../core/engine.js';
@@ -304,13 +312,16 @@ function renderConfig() {
             <input class="rs-input-val${l.roll > 100 ? ' over-roll' : ''}" type="number" step="0.01" value="${Number(l.value.toFixed(2))}" data-stat="${escapeHtml(l.name)}" data-min="${l.min}" data-max="${l.max}">
             <span class="rs-unit">${l.unit === '%' ? '%' : ''}</span>
           </td>
-          <td class="rs-pct-td${l.roll > 100 ? ' over-roll' : ''}" data-stat="${escapeHtml(l.name)}">(${Math.round(l.roll)}%)</td>
+          <td class="rs-pct-td${l.roll > 100 ? ' over-roll' : ''}" data-stat="${escapeHtml(l.name)}" style="color:${rollColor(l.roll)}">(${Math.round(l.roll)}%)</td>
         </tr>`).join('');
 
     html += `
       <div class="cfg-row"><label>Stars</label><div class="chip-row">${starChips}</div></div>
-      <div class="cfg-row"><label>Quality <b class="qty-label">${Math.round(overallQuality(item, cfg))}%</b></label>
-        <input class="roll-slider" type="range" min="1" max="${item.overRollable ? 200 : 100}" value="${Math.round(cfg.rollPct)}">
+      <div class="cfg-row"><label>Quality <b class="qty-label" style="color:${rollColor(Math.round(overallQuality(item, cfg)))}">${Math.round(overallQuality(item, cfg))}%</b></label>
+        <div class="roll-ctrl">
+          <input class="roll-slider" type="range" min="1" max="${item.overRollable ? 200 : 100}" value="${Math.round(cfg.rollPct)}">
+          <input class="roll-num" type="number" min="1" max="${item.overRollable ? 200 : 100}" step="1" value="${Math.round(cfg.rollPct)}">
+        </div>
         <div class="chip-row">${presets}</div></div>
       <div class="cfg-row"><label>Mutation</label><div class="chip-row wrap">${muts}</div></div>
       <div class="cfg-row"><label>Stat rolls <span class="rs-hint">individual %, averages to overall</span></label>
@@ -367,27 +378,37 @@ function wireConfig() {
   c.querySelectorAll('[data-ench]').forEach(b => b.addEventListener('click', () => { cfg.enchant = b.dataset.ench; change(); }));
   c.querySelectorAll('[data-trinket]').forEach(b => b.addEventListener('click', () => { cfg.trinket = b.dataset.trinket; change(); }));
   const slider = c.querySelector('.roll-slider');
-  if (slider) {
-    slider.addEventListener('input', () => { 
-      cfg.rollPct = +slider.value; 
-      cfg.statRolls = {}; 
-      const itemNode = getItem(slot().cat, cfg.itemId);
-      const lab = c.querySelector('.qty-label');
-      if (lab) lab.textContent = Math.round(overallQuality(itemNode, cfg)) + '%';
-      
-      // Update specific DOM elements instantly without destroying the slider!
-      const lines = rolledAccessoryStats(itemNode, cfg);
-      lines.forEach(l => {
-        if (l.note) return;
-        const inp = c.querySelector(`.rs-input-val[data-stat="${escapeHtml(l.name)}"]`);
-        if (inp) inp.value = Number(l.value.toFixed(2));
-        const pct = c.querySelector(`.rs-pct-td[data-stat="${escapeHtml(l.name)}"]`);
-        if (pct) pct.textContent = `(${Math.round(l.roll)}%)`;
-      });
-      commit();
+  const rollNum = c.querySelector('.roll-num');
+
+  function applyRollPct(val) {
+    cfg.rollPct = val;
+    cfg.statRolls = {};
+    if (slider) slider.value = val;
+    if (rollNum) rollNum.value = val;
+    const itemNode = getItem(slot().cat, cfg.itemId);
+    const q = Math.round(overallQuality(itemNode, cfg));
+    const lab = c.querySelector('.qty-label');
+    if (lab) { lab.textContent = q + '%'; lab.style.color = rollColor(q); }
+    const lines = rolledAccessoryStats(itemNode, cfg);
+    lines.forEach(l => {
+      if (l.note) return;
+      const inp = c.querySelector(`.rs-input-val[data-stat="${escapeHtml(l.name)}"]`);
+      if (inp) inp.value = Number(l.value.toFixed(2));
+      const pct = c.querySelector(`.rs-pct-td[data-stat="${escapeHtml(l.name)}"]`);
+      if (pct) { pct.textContent = `(${Math.round(l.roll)}%)`; pct.style.color = rollColor(l.roll); }
     });
-    // Remove the change event so we don't clobber the slider on mouseup, 
-    // real-time commit() handles the background data updates.
+    commit();
+  }
+
+  if (slider) slider.addEventListener('input', () => applyRollPct(+slider.value));
+  if (rollNum) {
+    rollNum.addEventListener('input', () => {
+      const v = Math.max(1, Math.min(overRollMax, +rollNum.value || 1));
+      applyRollPct(v);
+    });
+    rollNum.addEventListener('blur', () => {
+      if (!rollNum.value || +rollNum.value < 1) rollNum.value = Math.max(1, Math.round(cfg.rollPct));
+    });
   }
   c.querySelectorAll('.rs-btn').forEach(btn => btn.addEventListener('click', () => {
     const act = btn.dataset.act;

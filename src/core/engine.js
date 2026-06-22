@@ -161,8 +161,8 @@ export function computeBuild(build, activeBuffs = {}, museum = {}) {
       if (item.id === 'rune-purity') hasPurity = true;
       // Runes carry their numeric effects in toolStats ({name,value,unit}).
       (item.toolStats || []).forEach(ts => {
-        if (ts.unit === 'x') addMult(ts.name, ts.value, itemLabel);
-        else addFlat(ts.name, ts.value, slotKey);
+        if (ts.unit === 'x') addMult(normName(ts.name), ts.value, itemLabel);
+        else addFlat(normName(ts.name), ts.value, slotKey);
       });
     } else if (slot.kind === 'tool') {
       const ts = getToolStats(item, slotData);
@@ -173,7 +173,7 @@ export function computeBuild(build, activeBuffs = {}, museum = {}) {
       // shovel natural 1.5x + the meteor / starfall / fog-swamp events.
       ts.mults.forEach(m => addMult(m.name, m.value, itemLabel));
     } else {
-      rolledAccessoryStats(item, slotData).forEach(l => { if (!l.note) addFlat(l.name, l.value, slotKey); });
+      rolledAccessoryStats(item, slotData).forEach(l => { if (!l.note) addFlat(normName(l.name), l.value, slotKey); });
     }
   }
 

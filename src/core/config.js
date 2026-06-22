@@ -174,7 +174,7 @@ export const ENCHANT_COLORS = {
   'divine': '#ffd633',
   'infernal': '#ff6600',
   'prismatic': '#ff66ff',
-  'cursed': '#4d0099',
+  'cursed': '#c07af5',
   'devouring': '#ff4040',
   'hyperspeed': '#6699ff',
   'irregular': '#33cc33',
