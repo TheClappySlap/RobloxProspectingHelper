@@ -1175,3 +1175,45 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 }
 .bulk-mut-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mc, #555); flex-shrink: 0; }
 .bulk-mut-x { opacity: .65; font-weight: 500; }
+
+/* === Done button in picker ================================================ */
+.pop-done {
+  font: inherit; font-size: 12px; font-weight: 700; padding: 5px 14px;
+  border-radius: 20px; border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, var(--card));
+  color: var(--accent); cursor: pointer; margin-right: 6px;
+}
+.pop-done:hover { background: color-mix(in srgb, var(--accent) 25%, var(--card)); }
+
+/* === Over-roll red highlight ============================================== */
+.rs-input-val.over-roll { border-color: #ef4444 !important; color: #ef4444; }
+.rs-pct-td.over-roll { color: #ef4444; font-weight: 800; }
+
+/* === Neck/Charm/Rings bigger titles ======================================= */
+.slot-cap-accent { font-size: 15px !important; font-weight: 800 !important; color: var(--accent) !important; letter-spacing: 0.02em; }
+
+/* === Load/Edit All Gear buttons =========================================== */
+.bulk-btn { font-size: 13px !important; font-weight: 700; padding: 6px 13px !important; border-color: var(--accent) !important; color: var(--accent) !important; }
+.bulk-btn:hover { background: color-mix(in srgb, var(--accent) 12%, var(--card)) !important; }
+.build-load-sel { font-size: 13px; font-weight: 600; padding: 6px 10px; min-width: 130px; }
+
+/* === Presets A/B toggle =================================================== */
+.presets-ref-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.presets-ref-label { font-size: 12px; color: var(--muted-2); font-weight: 600; }
+.presets-ref-btn { font: inherit; font-size: 13px; font-weight: 700; padding: 5px 16px; border-radius: 20px; border: 1px solid var(--line); background: var(--card-2); color: var(--muted); cursor: pointer; transition: background .1s; }
+.presets-ref-btn.active { background: color-mix(in srgb, var(--accent) 15%, var(--card)); color: var(--accent); border-color: var(--accent); }
+.presets-ref-btn:hover:not(.active) { background: var(--bg-2); color: var(--text); }
+
+/* === Limited items section ================================================ */
+.limited-section { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.limited-toggle { width: 100%; text-align: left; background: none; border: none; color: var(--muted); font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; padding: 2px 0; letter-spacing: 0.05em; text-transform: uppercase; }
+.limited-toggle:hover { color: var(--accent); }
+.limited-body { margin-top: 10px; display: flex; flex-direction: column; gap: 12px; }
+.limited-group { display: flex; flex-direction: column; gap: 6px; }
+.limited-group-label { font-size: 10px; font-weight: 700; color: var(--muted-2); text-transform: uppercase; letter-spacing: 0.06em; }
+.limited-cards { display: flex; flex-wrap: wrap; gap: 5px; }
+.limited-card { font: inherit; font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; display: flex; flex-direction: column; gap: 2px; text-align: left; transition: border-color .1s; }
+.limited-card:hover { border-color: var(--accent); color: var(--accent); }
+.lc-name { font-weight: 700; }
+.lc-stat { font-size: 10px; color: var(--muted-2); }
+.limited-card:hover .lc-stat { color: inherit; opacity: .8; }

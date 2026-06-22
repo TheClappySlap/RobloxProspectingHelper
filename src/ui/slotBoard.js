@@ -6,7 +6,7 @@
 
 import { SLOTS, STAT_BY_KEY, rarityColor, rarityLabel, mutationColor, enchantColor } from '../core/config.js';
 import { state, emit, getBuild, clearSlot, clearAllGear, setSlot, setRingsUnlocked } from '../core/store.js';
-import { getItem, getMutation, getEnchant, enchantsFor, trinketsFor, itemImage } from '../core/db.js';
+import { getItem, getItems, getMutation, getEnchant, enchantsFor, trinketsFor, itemImage } from '../core/db.js';
 import { rolledAccessoryStats, overallQuality } from '../core/engine.js';
 import { openPicker } from './picker.js';
 import { escapeHtml, fmt } from './helpers.js';
@@ -85,7 +85,7 @@ function slotCard(slot, ref, opts = {}) {
   const bg = img ? `<img class="slot-bg" src="${escapeHtml(img)}" alt="" onerror="this.remove()">` : '';
   let stars = '', roll = '', sub = '';
   if (slot.kind === 'accessory') {
-    stars = `<span class="slot-stars">${'★'.repeat(cfg.starTier)}<span class="off">${'★'.repeat(6 - cfg.starTier)}</span></span>`;
+    stars = `<span class="slot-stars">${'★'.repeat(cfg.starTier)}</span>`;
     roll = `<span class="slot-roll">${Math.round(overallQuality(item, cfg))}%</span>`;
     if (cfg.mutation) {
       const m = getMutation(cfg.mutation);
@@ -110,7 +110,7 @@ function slotCard(slot, ref, opts = {}) {
 function labelledSlot(slot, ref) {
   const wrap = document.createElement('div');
   wrap.className = 'slot-labelled';
-  wrap.innerHTML = `<div class="slot-cap">${escapeHtml(slot.label)}</div>`;
+  wrap.innerHTML = `<div class="slot-cap${slot.group === 'trinkets' ? ' slot-cap-accent' : ''}">${escapeHtml(slot.label)}</div>`;
   wrap.appendChild(slotCard(slot, ref));
   return wrap;
 }
@@ -218,6 +218,63 @@ function openEnchantMenu(slotKey, anchorEl, ref) {
   enchMenu.style.top = `${Math.max(pad, Math.min(r.top, innerHeight - mh - pad))}px`;
 }
 
+// --- Limited items section --------------------------------------------------
+function renderLimitedSection(ref) {
+  const pans    = getItems('pans').filter(p => p.limited);
+  const shovels = getItems('shovels').filter(s => s.limited);
+  if (!pans.length && !shovels.length) return null;
+
+  const section = document.createElement('div');
+  section.className = 'limited-section';
+
+  let expanded = false;
+  const total = pans.length + shovels.length;
+  const toggle = document.createElement('button');
+  toggle.className = 'limited-toggle';
+  toggle.textContent = `▸ Limited Items (${total})`;
+  section.appendChild(toggle);
+
+  const body = document.createElement('div');
+  body.className = 'limited-body';
+  body.hidden = true;
+
+  const makeGroup = (label, items, slotKey, statName) => {
+    if (!items.length) return;
+    const g = document.createElement('div');
+    g.className = 'limited-group';
+    const lbl = document.createElement('span');
+    lbl.className = 'limited-group-label';
+    lbl.textContent = label;
+    g.appendChild(lbl);
+    const cards = document.createElement('div');
+    cards.className = 'limited-cards';
+    items.forEach(item => {
+      const statVal = (item.toolStats || []).find(t => t.name === statName)?.value ?? 0;
+      const card = document.createElement('button');
+      card.className = 'limited-card';
+      card.innerHTML = `<span class="lc-name">${escapeHtml(item.name)}</span><span class="lc-stat">${statName} ${statVal}</span>`;
+      card.addEventListener('click', () => {
+        setSlot(ref, slotKey, { itemId: item.id, mutation: '', rollPct: 100, statRolls: {}, starTier: 6, enchant: '', trinket: '' });
+      });
+      cards.appendChild(card);
+    });
+    g.appendChild(cards);
+    body.appendChild(g);
+  };
+
+  makeGroup('Pans', pans, 'pan', 'Luck');
+  makeGroup('Shovels', shovels, 'shovel', 'Dig Strength');
+  section.appendChild(body);
+
+  toggle.addEventListener('click', () => {
+    expanded = !expanded;
+    body.hidden = !expanded;
+    toggle.textContent = `${expanded ? '▾' : '▸'} Limited Items (${total})`;
+  });
+
+  return section;
+}
+
 // --- Board ------------------------------------------------------------------
 export function renderSlotBoard(root, ref = 'a') {
   root.innerHTML = '';
@@ -231,6 +288,9 @@ export function renderSlotBoard(root, ref = 'a') {
   tools.appendChild(toolBlock('shovel', 'tool-horizontal', ref));
   kit.appendChild(tools);
 
+  const limitedSec = renderLimitedSection(ref);
+  if (limitedSec) kit.appendChild(limitedSec);
+
   // Equipped gold panel
   const eq = document.createElement('div');
   eq.className = 'equipped';
@@ -243,7 +303,7 @@ export function renderSlotBoard(root, ref = 'a') {
 
   const ringsWrap = document.createElement('div');
   ringsWrap.className = 'rings-block';
-  ringsWrap.innerHTML = `<div class="block-title">Rings</div>`;
+  ringsWrap.innerHTML = `<div class="block-title slot-cap-accent">Rings</div>`;
   const ringGrid = document.createElement('div');
   ringGrid.className = 'ring-grid';
   SLOTS.filter(s => s.group === 'rings').forEach(s => ringGrid.appendChild(slotCard(s, ref, { locked: s.lockable && !state.ringsUnlocked })));

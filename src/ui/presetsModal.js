@@ -7,9 +7,11 @@ import { META_BUILDS, loadMetaBuild } from '../core/store.js';
 import { escapeHtml } from './helpers.js';
 
 let overlay = null;
+let activeRef = 'a';
 
 export function openPresetsModal(ref = 'a') {
   ensureOverlay();
+  activeRef = ref;
   render(ref);
   overlay.classList.add('open');
 }
@@ -78,15 +80,23 @@ function render(ref) {
       <button class="presets-close" aria-label="Close">✕</button>
     </div>
     <div class="presets-body">
-      <p class="presets-hint">Click a build to load it into Build A.</p>
+      <div class="presets-ref-row">
+        <span class="presets-ref-label">Load into:</span>
+        <button class="presets-ref-btn${activeRef === 'a' ? ' active' : ''}" data-ref="a">Build A</button>
+        <button class="presets-ref-btn${activeRef === 'b' ? ' active' : ''}" data-ref="b">Build B</button>
+      </div>
       ${sectionsHtml}
     </div>`;
 
   modal.querySelector('.presets-close').addEventListener('click', closePresetsModal);
 
+  modal.querySelectorAll('.presets-ref-btn').forEach(btn => {
+    btn.addEventListener('click', () => { activeRef = btn.dataset.ref; render(activeRef); });
+  });
+
   modal.querySelectorAll('.preset-card').forEach(card => {
     card.addEventListener('click', () => {
-      if (loadMetaBuild(card.dataset.id, ref)) closePresetsModal();
+      if (loadMetaBuild(card.dataset.id, activeRef)) closePresetsModal();
     });
   });
 }
