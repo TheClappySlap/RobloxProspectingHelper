@@ -77,7 +77,7 @@ export function rolledAccessoryStats(item, cfg) {
       const max = baseRange.max * (cfg.starTier === 6 ? 1 : starMult) * mutMult;
       const rp = (cfg.statRolls && cfg.statRolls[p.name] !== undefined) ? cfg.statRolls[p.name] : (cfg.rollPct || 90);
       const val = min + (max - min) * (rp / 100);
-      res.push({ note: false, name: p.name, min, max, unit: baseRange.unit, value: val });
+      res.push({ note: false, name: p.name, min, max, unit: baseRange.unit, value: val, roll: rp });
     }
   });
   return res;

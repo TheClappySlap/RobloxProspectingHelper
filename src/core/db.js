@@ -24,8 +24,17 @@ export function getItem(cat, id) {
   return byId[cat]?.[id] || null;
 }
 
+const toolStatVal = (item, name) => (item.toolStats || []).find(t => t.name === name)?.value ?? 0;
+
 export function getItems(cat) {
-  return DB[cat] || [];
+  const arr = (DB[cat] || []).slice();
+  if (cat === 'pans')    return arr.sort((a, b) => toolStatVal(b, 'Luck') - toolStatVal(a, 'Luck'));
+  if (cat === 'shovels') return arr.sort((a, b) => toolStatVal(b, 'Dig Strength') - toolStatVal(a, 'Dig Strength'));
+  return arr;
+}
+
+export function getLimitedItems(cat) {
+  return (DB[cat] || []).filter(item => item.limited === true);
 }
 
 export function getMutation(id) {

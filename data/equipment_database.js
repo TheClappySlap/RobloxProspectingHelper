@@ -1,9 +1,9 @@
 export const equipmentDatabaseRaw = {
   "buffs": [
-    { "id": "buff_login", "name": "Daily Login Bonus", "type": "Buff", "category": "Misc", "maxStacks": 10, "effects": [{ "stat": "Luck", "value": 5, "perStack": true }], "emoji": "🎁" },
+    { "id": "buff_login", "name": "Daily Login Bonus", "type": "Buff", "category": "Misc", "maxStacks": 10000, "effects": [{ "stat": "Luck", "value": 5, "perStack": true }], "emoji": "🎁" },
     { "id": "buff_mvp_economist", "name": "MVP: Economist", "type": "Buff", "category": "Permanent", "maxStacks": 1, "effects": [], "emoji": "💰" },
     { "id": "buff_mastery", "name": "Mastery Bonus", "type": "Buff", "category": "Permanent", "maxStacks": 1, "effects": [], "emoji": "👑" },
-    { "id": "buff_dredge", "name": "Dredge Master", "type": "Buff", "category": "Permanent", "maxStacks": 20, "effects": [{ "stat": "Luck", "value": 3, "perStack": true }], "emoji": "⚓" },
+    { "id": "buff_dredge", "name": "Dredge Master", "type": "Buff", "category": "Permanent", "maxStacks": 10000, "effects": [{ "stat": "Luck", "value": 3, "perStack": true }], "emoji": "⚓" },
     { "id": "buff_spirits", "name": "Blessing of the Spirits", "type": "Buff", "category": "Permanent", "maxStacks": 1, "effects": [{ "stat": "Luck", "value": 50 }], "emoji": "👻" },
     { "id": "buff_ancient", "name": "Ancient Blessing", "type": "Buff", "category": "Permanent", "maxStacks": 1, "effects": [{ "stat": "Luck", "value": 5 }], "emoji": "🏺" },
     { "id": "buff_trader", "name": "Trader's Recommendation", "type": "Buff", "category": "Permanent", "maxStacks": 1, "effects": [{ "stat": "Sell Boost", "value": 20 }], "emoji": "🤝" },
@@ -680,6 +680,7 @@ export const equipmentDatabaseRaw = {
       "name": "Apocalypse Bringer",
       "type": "Ring",
       "rarity": "Mythic",
+      "overRollable": true,
       "stats": [
         "Dig Strength: 5–20 (★6: 5–22)",
         "Luck: 10–40 (★6: 10–45)",
@@ -985,6 +986,7 @@ export const equipmentDatabaseRaw = {
       "name": "Umbrite Ring",
       "type": "Ring",
       "rarity": "Exotic",
+      "overRollable": true,
       "stats": [
         "Luck: 50-220 (★6: 50-245)",
         "Dig Strength: 5-45 (★6: 5-50)",
@@ -1209,6 +1211,7 @@ export const equipmentDatabaseRaw = {
       "id": "galactic-pan",
       "name": "Galactic Pan",
       "type": "Pan",
+      "limited": true,
       "stats": [],
       "image": [
         0
@@ -1241,6 +1244,7 @@ export const equipmentDatabaseRaw = {
       "id": "gingerbread-pan",
       "name": "Gingerbread Pan",
       "type": "Pan",
+      "limited": true,
       "stats": [],
       "image": [
         0
@@ -1555,6 +1559,7 @@ export const equipmentDatabaseRaw = {
       "id": "pumpkin-pan",
       "name": "Pumpkin Pan",
       "type": "Pan",
+      "limited": true,
       "stats": [],
       "image": [
         0
@@ -1587,6 +1592,7 @@ export const equipmentDatabaseRaw = {
       "id": "rose-pan",
       "name": "Rose Pan",
       "type": "Pan",
+      "limited": true,
       "stats": [],
       "image": [
         0
@@ -1747,6 +1753,7 @@ export const equipmentDatabaseRaw = {
       "id": "candy-cane-shovel",
       "name": "Candy Cane Shovel",
       "type": "Shovel",
+      "limited": true,
       "stats": [],
       "image": [
         0
@@ -1773,6 +1780,7 @@ export const equipmentDatabaseRaw = {
       "id": "cupids-arrow",
       "name": "Cupid's Arrow",
       "type": "Shovel",
+      "limited": true,
       "stats": [],
       "image": [
         0
@@ -1955,6 +1963,7 @@ export const equipmentDatabaseRaw = {
       "id": "galactic-shovel",
       "name": "Galactic Shovel",
       "type": "Shovel",
+      "limited": true,
       "stats": [],
       "image": [
         0
@@ -2085,6 +2094,7 @@ export const equipmentDatabaseRaw = {
       "id": "pumpkin-shovel",
       "name": "Pumpkin Shovel",
       "type": "Shovel",
+      "limited": true,
       "stats": [],
       "image": [
         0

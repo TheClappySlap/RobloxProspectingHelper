@@ -21,7 +21,7 @@ function build() {
   const overlay = h(`<div class="pop-overlay"></div>`);
   const pop = h(`
     <div class="popover" role="dialog">
-      <div class="pop-head"><span class="pop-title"></span><button class="pop-close" aria-label="Close">✕</button></div>
+      <div class="pop-head"><span class="pop-title"></span><button class="pop-done" aria-label="Done">✓ Done</button><button class="pop-close" aria-label="Close">✕</button></div>
       <div class="pop-grid">
         <div class="pop-left">
           <input class="pop-search" type="text" autocomplete="off">
@@ -36,6 +36,7 @@ function build() {
 
   overlay.addEventListener('click', close);
   pop.querySelector('.pop-close').addEventListener('click', close);
+  pop.querySelector('.pop-done').addEventListener('click', close);
   const search = pop.querySelector('.pop-search');
   search.addEventListener('input', () => { state.ui.search = search.value; renderTiles(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.ui.pickerOpen) close(); });
@@ -43,6 +44,7 @@ function build() {
   dom = {
     overlay, pop, tip, search,
     title: pop.querySelector('.pop-title'),
+    done: pop.querySelector('.pop-done'),
     rarities: pop.querySelector('.pop-rarities'),
     tiles: pop.querySelector('.pop-tiles'),
     config: pop.querySelector('.pop-config'),
@@ -269,16 +271,16 @@ function renderConfig() {
             <button class="rs-btn" data-act="max" data-stat="${escapeHtml(l.name)}">Max</button>
           </td>
           <td class="rs-input-td">
-            <input class="rs-input-val" type="number" step="0.01" value="${Number(l.value.toFixed(2))}" data-stat="${escapeHtml(l.name)}" data-min="${l.min}" data-max="${l.max}">
+            <input class="rs-input-val${l.roll > 100 ? ' over-roll' : ''}" type="number" step="0.01" value="${Number(l.value.toFixed(2))}" data-stat="${escapeHtml(l.name)}" data-min="${l.min}" data-max="${l.max}">
             <span class="rs-unit">${l.unit === '%' ? '%' : ''}</span>
           </td>
-          <td class="rs-pct-td" data-stat="${escapeHtml(l.name)}">(${Math.round(l.roll)}%)</td>
+          <td class="rs-pct-td${l.roll > 100 ? ' over-roll' : ''}" data-stat="${escapeHtml(l.name)}">(${Math.round(l.roll)}%)</td>
         </tr>`).join('');
 
     html += `
       <div class="cfg-row"><label>Star <b>★${cfg.starTier}</b></label><div class="star-row">${stars}</div></div>
       <div class="cfg-row"><label>Overall quality <b class="qty-label">${Math.round(overallQuality(item, cfg))}%</b></label>
-        <input class="roll-slider" type="range" min="1" max="100" value="${Math.round(cfg.rollPct)}">
+        <input class="roll-slider" type="range" min="1" max="${item.overRollable ? 200 : 100}" value="${Math.round(cfg.rollPct)}">
         <div class="chip-row">${presets}</div></div>
       <div class="cfg-row"><label>Mutation</label><div class="chip-row wrap">${muts}</div></div>
       <div class="cfg-row"><label>Stat rolls <span class="rs-hint">individual %, averages to overall</span></label>
@@ -326,6 +328,8 @@ function wireConfig() {
   const c = dom.config;
   const cfg = state.ui.draft;
   const change = () => { commit(); renderConfig(); };
+  const item = getItem(slot().cat, cfg.itemId);
+  const overRollMax = item?.overRollable ? 200 : 100;
 
   c.querySelectorAll('.star-btn').forEach(b => b.addEventListener('click', () => { cfg.starTier = +b.dataset.star; change(); }));
   c.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => { cfg.rollPct = +b.dataset.q; cfg.statRolls = {}; change(); }));
@@ -362,8 +366,8 @@ function wireConfig() {
     if (r === undefined) r = cfg.rollPct; // Start from overall rollPct if unset
     if (act === 'max') r = 100;
     else if (act === 'min') r = 0;
-    else if (act === 'plus') r = Math.min(100, r + 5);
-    else if (act === 'minus') r = Math.max(0, r - 5);
+    else if (act === 'plus')  r = Math.min(overRollMax, r + 1);
+    else if (act === 'minus') r = Math.max(0, r - 1);
     cfg.statRolls = { ...cfg.statRolls, [stat]: r };
     change();
   }));
@@ -373,7 +377,7 @@ function wireConfig() {
     const max = parseFloat(inp.dataset.max);
     if (!isNaN(val) && max > min) {
       let roll = ((val - min) / (max - min)) * 100;
-      cfg.statRolls = { ...cfg.statRolls, [inp.dataset.stat]: Math.max(0, Math.min(100, roll)) };
+      cfg.statRolls = { ...cfg.statRolls, [inp.dataset.stat]: Math.max(0, Math.min(overRollMax, roll)) };
     }
     change();
   }));
