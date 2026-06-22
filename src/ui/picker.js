@@ -289,7 +289,7 @@ function renderConfig() {
 
   if (s.kind === 'accessory') {
     const starChips = [1,2,3,4,5,6].map(n => `<button class="chip star-chip${cfg.starTier === n ? ' active' : ''}" data-star="${n}">${'★'.repeat(n)}</button>`).join('');
-    const presets = QUALITY_PRESETS.map(q => `<button class="chip${Math.round(overallQuality(item, cfg)) === q ? ' active' : ''}" data-q="${q}">${q}%</button>`).join('');
+    const presets = QUALITY_PRESETS.map(q => `<button class="chip${Math.round(overallQuality(item, cfg)) === q ? ' active' : ''}" data-q="${q}" style="--qc:${rollColor(q)}">${q}%</button>`).join('');
     const muts = [`<button class="chip${!cfg.mutation ? ' active' : ''}" data-mut="">None</button>`]
       .concat(getMutations().slice().sort((a, b) => a.multiplier - b.multiplier)
         .map(m => { const mc = mutationColor(m.id); const mg = mutationGradient(m.id);
@@ -309,8 +309,8 @@ function renderConfig() {
             <button class="rs-btn" data-act="max" data-stat="${escapeHtml(l.name)}">Max</button>
           </td>
           <td class="rs-input-td">
-            <input class="rs-input-val${l.roll > 100 ? ' over-roll' : ''}" type="number" step="0.01" value="${Number(l.value.toFixed(2))}" data-stat="${escapeHtml(l.name)}" data-min="${l.min}" data-max="${l.max}">
-            <span class="rs-unit">${l.unit === '%' ? '%' : ''}</span>
+            <input class="rs-input-val${l.roll > 100 ? ' over-roll' : ''}" type="number" step="0.01" value="${Number(l.value.toFixed(2))}" data-stat="${escapeHtml(l.name)}" data-min="${l.min}" data-max="${l.max}" style="color:${STAT_BY_KEY[l.name]?.color || ''}">
+            <span class="rs-unit" style="color:${STAT_BY_KEY[l.name]?.color || 'var(--muted-2)'}">${l.unit === '%' ? '%' : ''}</span>
           </td>
           <td class="rs-pct-td${l.roll > 100 ? ' over-roll' : ''}" data-stat="${escapeHtml(l.name)}" style="color:${rollColor(l.roll)}">(${Math.round(l.roll)}%)</td>
         </tr>`).join('');

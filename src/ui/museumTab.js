@@ -388,8 +388,8 @@ function raritySection(r, equipped) {
     <section class="mv-rarity">
       <div class="mv-rarity-head">
         <div class="mv-rarity-title" style="color:${r.color}">${escapeHtml(r.label)}</div>
-        <div class="mv-rarity-summary">${summary}</div>
       </div>
+      ${summary ? `<div class="mv-rarity-summary">${summary}</div>` : ''}
       <div class="mv-slots">${slots}</div>
       <div class="mv-table-wrap"><table class="mv-table">
         <thead><tr><th>Ore</th><th>Min KG</th><th>Bonus</th><th>Max Boost</th><th></th></tr></thead>

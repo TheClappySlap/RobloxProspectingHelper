@@ -520,6 +520,11 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 .chip[data-ench]:not([data-ench=""]):not(.active) { color: color-mix(in srgb, var(--ec) 65%, var(--muted)); border-color: color-mix(in srgb, var(--ec) 22%, var(--line)); }
 .chip[data-ench]:not([data-ench=""]):not(.active):hover { color: var(--ec); border-color: color-mix(in srgb, var(--ec) 55%, var(--line)); background: color-mix(in srgb, var(--ec) 6%, var(--card)); }
 .chip[data-ench]:not([data-ench=""]).active { background: color-mix(in srgb, var(--ec) 16%, var(--card)); border-color: var(--ec); color: var(--ec); outline-color: var(--ec); }
+/* Quality preset chips — --qc is set inline via rollColor() */
+.chip[data-q] { --qc: var(--accent); }
+.chip[data-q]:not(.active) { color: color-mix(in srgb, var(--qc) 65%, var(--muted)); border-color: color-mix(in srgb, var(--qc) 22%, var(--line)); }
+.chip[data-q]:not(.active):hover { color: var(--qc); border-color: color-mix(in srgb, var(--qc) 55%, var(--line)); background: color-mix(in srgb, var(--qc) 6%, var(--card)); }
+.chip[data-q].active { background: color-mix(in srgb, var(--qc) 18%, var(--card)); border-color: var(--qc); color: var(--qc); outline-color: var(--qc); }
 /* Star chips — show literal ★ characters, compact */
 .star-chip { font-size: .72rem; padding: 4px 7px; letter-spacing: .04em; }
 
@@ -754,14 +759,13 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 
 /* === Auto-Optimizer ======================================================= */
 .btn-optimize {
-  font: inherit; font-weight: 750; font-size: .9rem; cursor: pointer;
-  color: #3a2c08; padding: 9px 16px; border-radius: var(--radius-sm);
-  border: 1px solid var(--eq-border);
-  background: linear-gradient(180deg, var(--accent-2), var(--accent));
-  box-shadow: 0 2px 8px rgba(120,90,20,.25), inset 0 1px 0 rgba(255,255,255,.3);
+  font: inherit; font-weight: 700; font-size: .85rem; cursor: pointer;
+  color: var(--accent); padding: 7px 14px; border-radius: 7px;
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
   white-space: nowrap;
 }
-.btn-optimize:hover { filter: brightness(1.06); }
+.btn-optimize:hover { background: color-mix(in srgb, var(--accent) 22%, var(--card)); }
 .btn-optimize:active { transform: translateY(1px); }
 
 .opt-overlay {
