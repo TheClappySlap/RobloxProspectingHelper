@@ -416,8 +416,8 @@ export function renderMuseumTab(root) {
         <table class="mv-math-table">
           <tr><th>Rarity</th><th>Base</th><th>Mut</th></tr>
           <tr><td>Common</td><td>0.05x</td><td>0.005x</td></tr>
-          <tr><td>Uncommon</td><td>0.08x</td><td>0.008x</td></tr>
-          <tr><td>Rare</td><td>0.13x</td><td>0.013x</td></tr>
+          <tr><td>Uncommon</td><td>0.075x</td><td>0.0075x</td></tr>
+          <tr><td>Rare</td><td>0.125x</td><td>0.0125x</td></tr>
           <tr><td>Epic</td><td>0.20x</td><td>0.02x</td></tr>
           <tr><td>Legendary</td><td>0.30x</td><td>0.03x</td></tr>
           <tr><td>Mythic</td><td>0.50x</td><td>0.05x</td></tr>

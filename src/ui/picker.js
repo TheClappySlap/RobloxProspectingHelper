@@ -121,7 +121,8 @@ function reposition() {
 
 // --- limited / all tabs -----------------------------------------------------
 function renderTabs() {
-  const hasLimited = getItems(slot().cat).some(i => i.limited);
+  const s = slot();
+  const hasLimited = getItems(s.cat).some(i => i.limited);
   if (!hasLimited) { dom.tabs.style.display = 'none'; return; }
   dom.tabs.style.display = '';
   const base = s.label + 's';
@@ -279,7 +280,7 @@ function renderConfig() {
   }
 
   if (s.kind === 'accessory') {
-    const starChips = [1,2,3,4,5,6].map(n => `<button class="chip star-chip${cfg.starTier === n ? ' active' : ''}" data-star="${n}" title="${n} Stars">${n}<span class="sc-stars">${'★'.repeat(n)}</span></button>`).join('');
+    const starChips = [1,2,3,4,5,6].map(n => `<button class="chip star-chip${cfg.starTier === n ? ' active' : ''}" data-star="${n}">${'★'.repeat(n)}</button>`).join('');
     const presets = QUALITY_PRESETS.map(q => `<button class="chip${Math.round(overallQuality(item, cfg)) === q ? ' active' : ''}" data-q="${q}">${q}%</button>`).join('');
     const muts = [`<button class="chip${!cfg.mutation ? ' active' : ''}" data-mut="">None</button>`]
       .concat(getMutations().slice().sort((a, b) => a.multiplier - b.multiplier)
