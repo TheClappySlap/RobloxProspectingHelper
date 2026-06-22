@@ -628,6 +628,7 @@ export const equipmentDatabaseRaw = {
       "id": "clockwork",
       "name": "Clockwork",
       "type": "Charm",
+      "overRollable": true,
       "rarity": "Exotic",
       "stats": [
         "Luck: 50 - 200 (★6: 50 - 225)",
