@@ -156,11 +156,12 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 
 .unlock-btn {
   display: block; margin: 12px auto 0;
-  font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+  font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer;
   padding: 7px 16px; border-radius: 8px;
-  background: rgba(0,0,0,.18); color: #fbeecb; border: 1px solid rgba(0,0,0,.22);
+  background: rgba(0,0,0,.55); color: #fff; border: 1px solid rgba(0,0,0,.5);
+  text-shadow: none;
 }
-.unlock-btn:hover { background: rgba(0,0,0,.28); }
+.unlock-btn:hover { background: rgba(0,0,0,.7); }
 
 .runes-block { margin-top: 16px; text-align: center; }
 .runes-toggle {
