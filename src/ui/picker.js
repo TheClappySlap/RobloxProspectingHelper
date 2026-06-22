@@ -6,7 +6,7 @@
 // Edits apply live to the build behind it.
 // ---------------------------------------------------------------------------
 
-import { SLOTS, SLOT_BY_KEY, STAT_BY_KEY, STAR_MULT, RARITY_ORDER, rarityColor, rarityLabel, mutationColor, enchantColor, isUniqueEquip } from '../core/config.js';
+import { SLOTS, SLOT_BY_KEY, STAT_BY_KEY, STAR_MULT, RARITY_ORDER, rarityColor, rarityLabel, mutationColor, mutationGradient, enchantColor, isUniqueEquip } from '../core/config.js';
 import { state, emptySlot, getBuild, setSlot } from '../core/store.js';
 import { getItems, getItem, getMutations, enchantsFor, itemImage, getEnchant, trinketsFor } from '../core/db.js';
 import { rolledAccessoryStats, overallQuality, getToolStats } from '../core/engine.js';
@@ -284,7 +284,8 @@ function renderConfig() {
     const presets = QUALITY_PRESETS.map(q => `<button class="chip${Math.round(overallQuality(item, cfg)) === q ? ' active' : ''}" data-q="${q}">${q}%</button>`).join('');
     const muts = [`<button class="chip${!cfg.mutation ? ' active' : ''}" data-mut="">None</button>`]
       .concat(getMutations().slice().sort((a, b) => a.multiplier - b.multiplier)
-        .map(m => `<button class="chip${cfg.mutation === m.id ? ' active' : ''}" data-mut="${m.id}" style="--mc:${mutationColor(m.id)}"><span>${escapeHtml(m.name)}</span> ×${m.multiplier}</button>`)).join('');
+        .map(m => { const mc = mutationColor(m.id); const mg = mutationGradient(m.id);
+          return `<button class="chip${cfg.mutation === m.id ? ' active' : ''}" data-mut="${m.id}" style="--mc:${mc}${mg ? `;--mc-grad:${mg}` : ''}"${mg ? ' data-grad' : ''}><span>${escapeHtml(m.name)}</span> ×${m.multiplier}</button>`; })).join('');
 
     // Per-stat roll table with ranges.
     const lines = rolledAccessoryStats(item, cfg);

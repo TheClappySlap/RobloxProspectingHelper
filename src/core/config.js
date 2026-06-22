@@ -133,16 +133,25 @@ export function rarityLabel(r) {
 
 // --- Mutation colors (match the in-game tinting on item names) --------------
 export const MUTATION_COLORS = {
-  silver:      '#cfd4da',
-  gold:        '#f2c14e',
-  diamond:     '#5fd3e0',
-  prismatic:   '#c77dff',
-  festive:     '#ff5d73',
-  overclocked: '#9d4edd',
-  granite:     '#ff8a3d',
+  silver:      '#B2B2B2',
+  gold:        '#FFCC1B',
+  diamond:     '#3AD5FF',
+  prismatic:   '#E946DE',
+  festive:     '#FF0000',
+  overclocked: '#386FFF',
+  granite:     '#834F2F',
+};
+// Gradient mutations: value is CSS gradient used on active chip button.
+// The primary color in MUTATION_COLORS is used for equipped-gear display.
+export const MUTATION_GRADIENTS = {
+  prismatic: 'linear-gradient(90deg, #E946DE, #17B2E6)',
+  festive:   'linear-gradient(90deg, #FF0000, #00FF00)',
 };
 export function mutationColor(id) {
   return MUTATION_COLORS[id] || '#f7a8cf';
+}
+export function mutationGradient(id) {
+  return MUTATION_GRADIENTS[id] || '';
 }
 
 /** Enchants map directly to their in-game colored prefixes */

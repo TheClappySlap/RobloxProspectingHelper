@@ -8,7 +8,7 @@
 // ---------------------------------------------------------------------------
 
 import {
-  RARITIES, ORES, MUTATIONS, MUTATION_MULT, STAT_CONFIG, STAT_ORDER, bestMutationFor,
+  RARITIES, ORES, MUTATIONS, MUTATION_MULT, STAT_CONFIG, STAT_ORDER, bestMutationFor, museumMutationColor,
 } from '../core/museumData.js';
 import { escapeHtml } from './helpers.js';
 
@@ -279,12 +279,14 @@ function slotHtml(r, slot, idx) {
        <span class="mv-eff-v">+${MUTATION_MULT[r.id].toFixed(3)}x</span></div>`).join('');
   }
   let menu = `<div class="cd-item" data-act="set-mut" data-r="${r.id}" data-i="${idx}" data-mut="">
-      <span class="cd-name" style="color:var(--mv-dim)">No Modifier</span></div>`;
+      <span class="cd-name" style="color:var(--muted-2)">No Modifier</span></div>`;
   MUTATIONS.forEach(m => {
+    const col = museumMutationColor(m.id);
     const effs = m.stats.map(st => `<span class="${STAT_CONFIG[st].css}">${STAT_CONFIG[st].label}</span>`).join(' + ');
     menu += `<div class="cd-item" data-act="set-mut" data-r="${r.id}" data-i="${idx}" data-mut="${m.id}">
-      <span class="cd-name">${escapeHtml(m.label)}</span><span class="cd-effs">${effs}</span></div>`;
+      <span class="cd-name" style="color:${col}">${escapeHtml(m.label)}</span><span class="cd-effs">${effs}</span></div>`;
   });
+  const mutColor = slot.mutation ? museumMutationColor(slot.mutation.id) : null;
   const mutLabel = slot.mutation ? slot.mutation.label : 'Select Modifier';
   return `
     <div class="mv-slot filled" style="--slot-color:${r.color}">
@@ -292,7 +294,7 @@ function slotHtml(r, slot, idx) {
       <div class="mv-slot-name">${escapeHtml(slot.ore.name)}</div>
       <div class="custom-dropdown ${openDropdown === ddId ? 'open' : ''}">
         <div class="cd-trigger" data-act="dd-toggle" data-dd="${ddId}">
-          <span class="cd-label" style="color:${slot.mutation ? 'var(--gold)' : 'var(--mv-dim)'}">${escapeHtml(mutLabel)}</span>
+          <span class="cd-label" style="color:${mutColor || 'var(--muted-2)'}">${escapeHtml(mutLabel)}</span>
           <span class="cd-caret">▼</span>
         </div>
         <div class="cd-menu">${menu}</div>
@@ -320,9 +322,9 @@ function raritySection(r, equipped) {
     const effs = ore.effects.map(e => `<span class="${STAT_CONFIG[e.stat].css}">${STAT_CONFIG[e.stat].label}</span>`).join(', ');
     const maxes = ore.effects.map(e => `${e.max}x`).join(', ');
     const actCell = eq
-      ? `<td class="mv-row-act"><button class="mv-row-unequip" data-act="unequip-ore" data-r="${r.id}" data-ore="${escapeHtml(ore.name)}">✕ Remove</button></td>`
+      ? `<td class="mv-row-act"><span class="mv-row-unequip">✕ Remove</span></td>`
       : `<td class="mv-row-act"><span class="mv-row-equip">+ Equip</span></td>`;
-    return `<tr class="${eq ? 'equipped' : ''}" ${eq ? '' : `data-act="equip" data-r="${r.id}" data-ore="${escapeHtml(ore.name)}"`}>
+    return `<tr class="${eq ? 'equipped' : ''}" data-act="${eq ? 'unequip-ore' : 'equip'}" data-r="${r.id}" data-ore="${escapeHtml(ore.name)}">
       <td style="color:${r.color}">${escapeHtml(ore.name)}</td><td>${ore.kg || '--'}</td><td>${effs}</td><td>${maxes}</td>${actCell}</tr>`;
   };
 
@@ -491,7 +493,12 @@ function wire(root) {
   root.querySelector('#mv-import')?.addEventListener('change', e => importFile(e.target.files[0]));
 }
 
-function rerender() { if (mountRoot) renderMuseumTab(mountRoot); }
+function rerender() {
+  if (!mountRoot) return;
+  const sy = window.scrollY;
+  renderMuseumTab(mountRoot);
+  window.scrollTo({ top: sy, behavior: 'instant' });
+}
 
 // Restore the last-edited museum on first load.
 applyData(readJSON(LS_SLOTS, null));

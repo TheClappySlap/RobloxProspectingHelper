@@ -501,9 +501,13 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 /* Mutation chips use their own color (--mc set inline) */
 /* Mutation chips — use their own color (--mc set inline on button) */
 .chip[data-mut] { --mc: var(--accent); }
-.chip[data-mut]:not(.active):hover { color: var(--mc); outline-color: color-mix(in srgb, var(--mc) 55%, transparent); }
-.chip[data-mut].active { background: color-mix(in srgb, var(--mc) 16%, var(--card)); border-color: var(--mc); color: var(--mc); outline-color: var(--mc); }
+.chip[data-mut]:not([data-grad]):not(.active):hover { color: var(--mc); outline-color: color-mix(in srgb, var(--mc) 55%, transparent); }
+.chip[data-mut]:not([data-grad]).active { background: color-mix(in srgb, var(--mc) 16%, var(--card)); border-color: var(--mc); color: var(--mc); outline-color: var(--mc); }
 .chip[data-mut].active span { color: var(--mc); }
+/* Gradient mutation chips (prismatic, festive) */
+.chip[data-grad]:not(.active):hover { background: var(--mc-grad); color: #fff; border-color: transparent; outline: none; }
+.chip[data-grad].active { background: var(--mc-grad) !important; color: #fff !important; border-color: transparent !important; outline: 2px solid var(--mc) !important; outline-offset: 2px !important; }
+.chip[data-grad].active span { color: #fff !important; }
 /* Enchant chips — same pattern with --ec */
 .chip[data-ench] { --ec: var(--accent); }
 .chip[data-ench]:not([data-ench=""]):not(.active):hover { color: var(--ec); outline-color: color-mix(in srgb, var(--ec) 55%, transparent); }

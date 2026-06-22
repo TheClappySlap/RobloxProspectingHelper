@@ -146,6 +146,36 @@ export const ORES = {
 
 // Each mutation boosts a fixed set of stats; the per-stat amount is the rarity's
 // MUTATION_MULT. `stats` is the flat list of stats this mutation can boost.
+export const MUSEUM_MUTATION_COLORS = {
+  modifier:    '#C0C0C0',
+  perfect:     '#00DDBB',
+  treasured:   '#E5C158',
+  lunar:       '#FFEFA3',
+  voidtorn:    '#7B2CBF',
+  mutated:     '#7052FF',
+  cosmic:      '#D64275',
+  electrified: '#FFEB00',
+  iridescent:  '#D059D2',
+  crystalline: '#72AEC4',
+  irradiated:  '#29E300',
+  scorching:   '#D86813',
+  glowing:     '#FFF194',
+  pure:        '#E8E8E8',
+  shiny:       '#E0E0E0',
+  purified:    '#E8E8E8',
+  ghostly:     '#44D732',
+  spooky:      '#00BC70',
+  jolly:       '#CE3636',
+  charming:    '#FF94C9',
+  rosy:        '#A1263B',
+  summer:      '#D67813',
+  tidal:       '#20458C',
+  hearthflame: '#D15302',
+};
+export function museumMutationColor(id) {
+  return MUSEUM_MUTATION_COLORS[(id || '').toLowerCase()] || '#9e9e9e';
+}
+
 export const MUTATIONS = [
   { id: 'perfect',    label: 'Perfect',    stats: ['luck', 'capacity', 'size_boost'] },
   { id: 'treasured',  label: 'Treasured',  stats: ['luck'] },
