@@ -4,23 +4,18 @@
 
 ---
 
-## v0.3 — Next Iteration
+## v0.3 — Museum Overhaul (Next Session)
 
-### Quick Fixes
-- [ ] 🟡 **Devouring enchant color** — Missing from ENCHANT_COLORS in config.js; add distinct color
-- [ ] 🟡 **Sort picker by value** — Best→Worst / Worst→Best toggle on pan/shovel/accessory tiles
-- [ ] 🟡 **Roll input step = 1** — Min/Max range inputs in equipment config should go up/down by 1
-- [ ] 🟡 **"Done" button in picker** — Confirm/close button so user doesn't need to hit X to dismiss
-- [ ] 🟡 **Neck/Charm/Rings labels** — Make slot section titles larger and brighter (match "Equipped" heading)
+### Museum — Core
+- [ ] 🟡 **Treasured-map awareness** — Autofill luck builds only assign "Treasured" mutation to ores from: Fortune River, Fortune River Delta, Sunset Beach, Volcanic Sands, Windswept Beach, Frostbite River, Rotwood Swamp. Other slots use best alternative mutation.
+- [ ] 🟡 **Modifier abbreviation tooltips** — Hover on abbreviated stat names in slots/table shows full label (e.g. "DigStr → Dig Strength")
+- [ ] 🟡 **Three-tier autofill** — Priority (match active build stats) / Ambitious (stretch targets) / Best-math (pure optimal per slot)
+- [ ] 🟡 **Planner → Museum push** — "Apply to Museum" button on optimizer result populates museum slots to match ideal stat vector
+- [ ] 🟡 **Prismara pre-slot** — Pre-contribute Prismara (+0.25× Luck/Cap/DigStr/ShakeStr) before water-filling, preventing over-allocation of those stats
+
+### UI Polish (small, do these too)
+- [ ] 🟡 **Neck/Charm/Rings labels** — Make slot section titles larger and brighter (match "Equipped" heading intensity)
 - [ ] 🟡 **Runes button** — Move closer to center; change arrow color to white or light grey
-- [ ] 🟡 **Allow >100% rolls for all gear** — Currently only overRollable items allow it; make it universal
-
-### Museum
-- [ ] 🟡 **Modifier abbreviation tooltips** — On hover over abbreviated stat names in slots, show full label
-- [ ] 🟡 **Verify all 15 exotic ores** — Cross-check values against prospecting.miraheze.org
-- [ ] 🟡 **Treasured-map awareness** — Autofill luck builds should only assign Treasured mutation to ores from: Fortune River, Fortune River Delta, Sunset Beach, Volcanic Sands, Windswept Beach, Frostbite River, Rotwood Swamp
-
-### Accessibility
 - [ ] 🟢 **Color vs B&W text** — WCAG AA contrast pass; key text readable in greyscale
 
 ---
@@ -40,16 +35,17 @@
 - [ ] **Item access filter** — "I own these items" checkbox; optimizer skips unowned
 - [ ] **Parameterizable objective** — Swap Rolls/s target for Gold/s, Mod Boost focus, or hybrid
 
-### Museum Planner
-- [ ] **Planner → Museum push** — "Apply to Museum" button from optimizer result
-- [ ] **Prismara pre-slot** — Pre-contribute Prismara (+0.25× Luck/Cap/DigStr/ShakeStr) before water-filling
-- [ ] **Three-tier autofill** — Priority (match build stats) / Ambitious (stretch targets) / Best-math
-
 ---
 
 ## ✅ Completed — v0.2
 
-### This Session (2026-06-22)
+### Session 2026-06-22
+- Devouring enchant color added to ENCHANT_COLORS
+- Sort picker tiles by value: Best→Worst / Worst→Best toggle
+- Roll input step = 1 (min/max fields increment by 1)
+- "Done" / close button in gear picker
+- Allow >100% rolls for all gear (not just overRollable-flagged items)
+- All 15 exotic ores verified against miraheze wiki
 - Museum MUTATION_MULT corrected: common 0.005×, uncommon 0.0075×, rare 0.0125×
 - North Star all 4 stats corrected to 0.20× (was 0.32×)
 - 6 missing exotic ores added: Pumpkin Soul, Singularium, Starpiercer, Umbrite, Vineheart, Voidstone (15 total)
@@ -73,7 +69,7 @@
 - Unlock Extra Ring Slots button: solid dark background for contrast on gold board
 - v0.2 Preview badge in topbar
 - Clockwork Charm: overRollable flag added
-- Branch hygiene: parser/OCR work isolated to parser-work branch; node_modules gitignored
+- Branch hygiene: parser/OCR work on parser-work branch; node_modules gitignored
 
 ### Prior Sessions
 - Build planner: all slots, live stats, rarity colors, roll display
@@ -81,7 +77,7 @@
 - Buffs panel: all 42 buffs grouped (Totems/Permanent/Coin/Shard/Traveler/Events/Misc)
 - Auto-Optimizer: 3-step pipeline (gear sweep → museum brute force Web Worker → pairwise coordinate descent)
 - Museum tab: standalone ore planner, autofill, save/load, stat-filter chips, priority-chain presets
-- Dark theme: converted from parchment to dark (#12141c base)
+- Dark theme (#12141c base)
 - Bulk Editor: star tier / roll % / mutation applied to all occupied accessory slots at once
 - Presets modal: meta builds load into chosen build A or B
 - Per-stat color coding across all panels
