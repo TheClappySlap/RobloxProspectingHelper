@@ -27,8 +27,8 @@ function buildHead(ref) {
   return `<div class="build-head">
     <input class="build-name" data-ref="${ref}" value="${escapeHtml(state.names[ref])}" aria-label="Build name">
     <div class="build-acts">
-      <select class="load-sel" data-ref="${ref}" title="Load a saved build">${loadOpts}</select>
-      <button class="mini" data-act="bulk" data-ref="${ref}" title="Bulk-edit star tier, roll % and mutation for all accessories">✏️ Edit All Gear</button>
+      <select class="load-sel build-load-sel" data-ref="${ref}" title="Load a saved build">${loadOpts}</select>
+      <button class="mini bulk-btn" data-act="bulk" data-ref="${ref}" title="Bulk-edit star tier, roll % and mutation for all accessories">✏️ Edit All Gear</button>
       <button class="mini" data-act="save" data-ref="${ref}">Save</button>
       <button class="mini" data-act="reset" data-ref="${ref}">Reset</button>
     </div>
