@@ -56,18 +56,18 @@ function render(ref) {
   const muts = sortedMutations();
 
   const segStar = STAR_OPTS.map(s =>
-    `<button type="button" class="bulk-seg-btn${sel.starTier === s ? ' on' : ''}" data-field="starTier" data-val="${s}">${s}★</button>`
+    `<button type="button" class="chip${sel.starTier === s ? ' active' : ''}" data-field="starTier" data-val="${s}">${'★'.repeat(s)}</button>`
   ).join('');
 
   const segRoll = ROLL_OPTS.map(r =>
-    `<button type="button" class="bulk-seg-btn${sel.rollPct === r ? ' on' : ''}" data-field="rollPct" data-val="${r}">${r}%</button>`
+    `<button type="button" class="chip${sel.rollPct === r ? ' active' : ''}" data-field="rollPct" data-val="${r}">${r}%</button>`
   ).join('');
 
   const mutChips = [
-    `<button type="button" class="bulk-mut-chip${sel.mutation === '' ? ' on' : ''}" data-mut="">None</button>`,
+    `<button type="button" class="chip${sel.mutation === '' ? ' active' : ''}" data-mut="">None</button>`,
     ...muts.map(m => {
       const col = mutColor(m.multiplier);
-      return `<button type="button" class="bulk-mut-chip${sel.mutation === m.id ? ' on' : ''}" data-mut="${m.id}" style="--mc:${col}">
+      return `<button type="button" class="chip bulk-mut-chip${sel.mutation === m.id ? ' active' : ''}" data-mut="${m.id}" style="--mc:${col}">
         <span class="bulk-mut-dot"></span>${escapeHtml(m.name)} <span class="bulk-mut-x">×${m.multiplier}</span>
       </button>`;
     }),
@@ -83,15 +83,15 @@ function render(ref) {
     <div class="bulk-body">
       <div class="bulk-row">
         <span class="bulk-label">Star Tier</span>
-        <div class="bulk-seg">${segStar}</div>
+        <div class="chip-row">${segStar}</div>
       </div>
       <div class="bulk-row">
         <span class="bulk-label">Roll %</span>
-        <div class="bulk-seg">${segRoll}</div>
+        <div class="chip-row">${segRoll}</div>
       </div>
       <div class="bulk-row bulk-row-col">
         <span class="bulk-label">Mutation</span>
-        <div class="bulk-mut-chips">${mutChips}</div>
+        <div class="chip-row wrap">${mutChips}</div>
       </div>
       <p class="bulk-preview">Applies to <b>${occupied}</b> equipped accessory slot${occupied !== 1 ? 's' : ''}</p>
       <div class="bulk-actions">
@@ -100,7 +100,7 @@ function render(ref) {
       </div>
     </div>`;
 
-  modal.querySelectorAll('.bulk-seg-btn').forEach(btn => {
+  modal.querySelectorAll('[data-field]').forEach(btn => {
     btn.addEventListener('click', () => {
       const field = btn.dataset.field;
       sel[field] = field === 'starTier' || field === 'rollPct' ? Number(btn.dataset.val) : btn.dataset.val;
@@ -108,10 +108,10 @@ function render(ref) {
     });
   });
 
-  modal.querySelectorAll('.bulk-mut-chip').forEach(chip => {
+  modal.querySelectorAll('[data-mut]').forEach(chip => {
     chip.addEventListener('click', () => {
       sel.mutation = chip.dataset.mut;
-      modal.querySelectorAll('.bulk-mut-chip').forEach(x => x.classList.toggle('on', x === chip));
+      modal.querySelectorAll('[data-mut]').forEach(x => x.classList.toggle('active', x === chip));
     });
   });
 

@@ -15,28 +15,31 @@ import { escapeHtml, fmt, h } from './helpers.js';
 
 let dom = null;
 let anchorRect = null;
+let limitedOnly = false;
 const QUALITY_PRESETS = [50, 70, 75, 80, 85, 90, 95, 100];
 
 function build() {
   const overlay = h(`<div class="pop-overlay"></div>`);
   const pop = h(`
     <div class="popover" role="dialog">
-      <div class="pop-head"><span class="pop-title"></span><button class="pop-done" aria-label="Done">✓ Done</button><button class="pop-close" aria-label="Close">✕</button></div>
+      <div class="pop-head"><span class="pop-title"></span><button class="pop-close" aria-label="Close">✕</button></div>
       <div class="pop-grid">
         <div class="pop-left">
+          <div class="pop-tabs"></div>
           <input class="pop-search" type="text" autocomplete="off">
           <div class="pop-rarities"></div>
           <div class="pop-tiles"></div>
         </div>
         <div class="pop-right"><div class="pop-config"></div></div>
       </div>
+      <div class="pop-foot"><button class="pop-equip">✓ Equip</button></div>
     </div>`);
   const tip = h(`<div class="pop-tip"></div>`);
   document.body.append(overlay, pop, tip);
 
   overlay.addEventListener('click', close);
   pop.querySelector('.pop-close').addEventListener('click', close);
-  pop.querySelector('.pop-done').addEventListener('click', close);
+  pop.querySelector('.pop-equip').addEventListener('click', close);
   const search = pop.querySelector('.pop-search');
   search.addEventListener('input', () => { state.ui.search = search.value; renderTiles(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.ui.pickerOpen) close(); });
@@ -44,7 +47,7 @@ function build() {
   dom = {
     overlay, pop, tip, search,
     title: pop.querySelector('.pop-title'),
-    done: pop.querySelector('.pop-done'),
+    tabs: pop.querySelector('.pop-tabs'),
     rarities: pop.querySelector('.pop-rarities'),
     tiles: pop.querySelector('.pop-tiles'),
     config: pop.querySelector('.pop-config'),
@@ -68,6 +71,7 @@ export function openPicker(ref, slotKey, anchorEl) {
   state.ui.draft = { ...emptySlot(), ...cur, statRolls: { ...(cur.statRolls || {}) } };
   state.ui.search = '';
   state.ui.rarityFilter = 'all';
+  limitedOnly = false;
 
   dom.title.textContent = s.label;
   dom.search.value = '';
@@ -81,6 +85,7 @@ export function openPicker(ref, slotKey, anchorEl) {
     dom.pop.classList.remove('rune-mode');
   }
 
+  renderTabs();
   renderRarities();
   renderTiles();
   renderConfig();
@@ -112,6 +117,26 @@ function reposition() {
   if (top + ph > innerHeight - pad) top = Math.max(pad, innerHeight - pad - ph);
   dom.pop.style.left = `${left}px`;
   dom.pop.style.top = `${top}px`;
+}
+
+// --- limited / all tabs -----------------------------------------------------
+function renderTabs() {
+  const hasLimited = getItems(slot().cat).some(i => i.limited);
+  if (!hasLimited) { dom.tabs.style.display = 'none'; return; }
+  dom.tabs.style.display = '';
+  dom.tabs.innerHTML = [
+    { ltd: false, label: 'All' },
+    { ltd: true,  label: '✦ Limited' },
+  ].map(t => `<button class="pop-tab${limitedOnly === t.ltd ? ' active' : ''}" data-ltd="${t.ltd}">${t.label}</button>`).join('');
+  dom.tabs.querySelectorAll('.pop-tab').forEach(b => {
+    b.addEventListener('click', () => {
+      limitedOnly = b.dataset.ltd === 'true';
+      state.ui.rarityFilter = 'all';
+      renderTabs();
+      renderRarities();
+      renderTiles();
+    });
+  });
 }
 
 // --- rarity filter ----------------------------------------------------------
@@ -189,7 +214,9 @@ function renderTiles() {
   const search = (state.ui.search || '').toLowerCase();
   const rf = state.ui.rarityFilter;
   const items = getItems(s.cat).filter(i =>
-    i.name.toLowerCase().includes(search) && (rf === 'all' || (i.rarity || '').toLowerCase() === rf));
+    i.name.toLowerCase().includes(search) &&
+    (rf === 'all' || (i.rarity || '').toLowerCase() === rf) &&
+    (!limitedOnly || i.limited));
   // Equip-once rule: a unique item already worn elsewhere can't be picked again.
   const blocked = s.kind === 'accessory' ? uniqueEquippedElsewhere() : new Set();
 
@@ -212,6 +239,7 @@ function renderTiles() {
     const tile = h(`<button class="tile${selected ? ' selected' : ''}${dup ? ' disabled' : ''}"${dup ? ' aria-disabled="true" title="Only one can be equipped — already worn in another slot"' : ''}>
         <span class="tile-ico">${img ? `<img src="${escapeHtml(img)}" alt="" onerror="this.replaceWith(document.createTextNode('◆'))">` : '◆'}</span>
         <span class="tile-name" style="color:${item.color || rarityColor(item.rarity)}">${nameHtml}</span>
+        ${item.limited ? `<span class="tile-ltd" title="Limited / Seasonal">✦</span>` : ''}
         ${dup ? `<span class="tile-lock" aria-hidden="true">1×</span>` : ''}
       </button>`);
     tile.style.setProperty('--rc', item.color || rarityColor(item.rarity));
@@ -250,8 +278,7 @@ function renderConfig() {
   }
 
   if (s.kind === 'accessory') {
-    let stars = '';
-    for (let i = 1; i <= 6; i++) stars += `<button class="star-btn${i <= cfg.starTier ? ' on' : ''}" data-star="${i}">★</button>`;
+    const starChips = [5, 6].map(s => `<button class="chip${cfg.starTier === s ? ' active' : ''}" data-star="${s}">${'★'.repeat(s)}</button>`).join('');
     const presets = QUALITY_PRESETS.map(q => `<button class="chip${Math.round(overallQuality(item, cfg)) === q ? ' active' : ''}" data-q="${q}">${q}%</button>`).join('');
     const muts = [`<button class="chip${!cfg.mutation ? ' active' : ''}" data-mut="">None</button>`]
       .concat(getMutations().slice().sort((a, b) => a.multiplier - b.multiplier)
@@ -262,7 +289,7 @@ function renderConfig() {
     const rows = lines.map(l => l.note
       ? `<tr class="rs-note"><td colspan="5">${escapeHtml(l.name)}</td></tr>`
       : `<tr>
-          <td class="rs-name">${escapeHtml(l.name)}</td>
+          <td class="rs-name" style="color:${STAT_BY_KEY[l.name]?.color || 'var(--text)'}">${escapeHtml(l.name)}</td>
           <td class="rs-range">${fmt(l.min)} &ndash; ${fmt(l.max)}${l.unit === '%' ? '%' : ''}</td>
           <td class="rs-acts">
             <button class="rs-btn" data-act="min" data-stat="${escapeHtml(l.name)}">Min</button>
@@ -278,10 +305,9 @@ function renderConfig() {
         </tr>`).join('');
 
     html += `
-      <div class="cfg-row"><label>Star <b>★${cfg.starTier}</b></label><div class="star-row">${stars}</div></div>
-      <div class="cfg-row"><label>Overall quality <b class="qty-label">${Math.round(overallQuality(item, cfg))}%</b></label>
+      <div class="cfg-row"><label>Quality <b class="qty-label">${Math.round(overallQuality(item, cfg))}%  ★${cfg.starTier}</b></label>
         <input class="roll-slider" type="range" min="1" max="${item.overRollable ? 200 : 100}" value="${Math.round(cfg.rollPct)}">
-        <div class="chip-row">${presets}</div></div>
+        <div class="chip-row">${starChips}<span class="chip-div"></span>${presets}</div></div>
       <div class="cfg-row"><label>Mutation</label><div class="chip-row wrap">${muts}</div></div>
       <div class="cfg-row"><label>Stat rolls <span class="rs-hint">individual %, averages to overall</span></label>
         <table class="roll-table">${rows}</table></div>`;
@@ -292,7 +318,7 @@ function renderConfig() {
       const base = ts.baseFlats[stat] || 0;
       const bonus = ts.bonuses[stat] || 0;
       const valStr = bonus ? `${fmt(base)} <span class="sb-bonus">(+${fmt(bonus)})</span>` : fmt(base);
-      lines.push(`<div class="stat-bar"><span class="sb-label">${escapeHtml(stat)}</span><span class="sb-val">${valStr}</span></div>`);
+      lines.push(`<div class="stat-bar"><span class="sb-label" style="color:${STAT_BY_KEY[stat]?.color || ''}">${escapeHtml(stat)}</span><span class="sb-val">${valStr}</span></div>`);
     });
     ts.mults.forEach(m => {
       lines.push(`<div class="stat-bar"><span class="sb-label">${escapeHtml(m.name)}</span><span class="sb-val">×${m.value}</span></div>`);
@@ -331,7 +357,7 @@ function wireConfig() {
   const item = getItem(slot().cat, cfg.itemId);
   const overRollMax = item?.overRollable ? 200 : 100;
 
-  c.querySelectorAll('.star-btn').forEach(b => b.addEventListener('click', () => { cfg.starTier = +b.dataset.star; change(); }));
+  c.querySelectorAll('[data-star]').forEach(b => b.addEventListener('click', () => { cfg.starTier = +b.dataset.star; change(); }));
   c.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => { cfg.rollPct = +b.dataset.q; cfg.statRolls = {}; change(); }));
   c.querySelectorAll('[data-mut]').forEach(b => b.addEventListener('click', () => { cfg.mutation = b.dataset.mut; change(); }));
   c.querySelectorAll('[data-ench]').forEach(b => b.addEventListener('click', () => { cfg.enchant = b.dataset.ench; change(); }));

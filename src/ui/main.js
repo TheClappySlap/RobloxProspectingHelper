@@ -28,9 +28,10 @@ function buildHead(ref) {
     <input class="build-name" data-ref="${ref}" value="${escapeHtml(state.names[ref])}" aria-label="Build name">
     <div class="build-acts">
       <select class="load-sel build-load-sel" data-ref="${ref}" title="Load a saved build">${loadOpts}</select>
-      <button class="mini bulk-btn" data-act="bulk" data-ref="${ref}" title="Bulk-edit star tier, roll % and mutation for all accessories">✏️ Edit All Gear</button>
+      <button class="mini bh-presets" data-act="presets" data-ref="${ref}" title="Load a meta build into this build">📋 Meta Builds</button>
       <button class="mini" data-act="save" data-ref="${ref}">Save</button>
       <button class="mini" data-act="reset" data-ref="${ref}">Reset</button>
+      <button class="mini bulk-btn" data-act="bulk" data-ref="${ref}" title="Bulk-edit star tier, roll % and mutation for all accessories">✏️ Edit All Gear</button>
     </div>
   </div>`;
 }
@@ -111,6 +112,8 @@ function wireHeads(root) {
       if (confirm('Reset this build (gear + buffs)?')) resetBuild(ref);
     } else if (btn.dataset.act === 'bulk') {
       openBulkEditor(ref);
+    } else if (btn.dataset.act === 'presets') {
+      openPresetsModal(ref);
     }
   }));
 }
@@ -124,8 +127,6 @@ function renderAll() {
   if (cmp) cmp.style.display = state.tab === 'planner' ? '' : 'none';
   const optBtn = $('#optimizeBtn');
   if (optBtn) optBtn.style.display = state.tab === 'planner' ? '' : 'none';
-  const presBtn = $('#presetsBtn');
-  if (presBtn) presBtn.style.display = state.tab === 'planner' ? '' : 'none';
   document.body.classList.toggle('on-museum', state.tab === 'museum');
 
   if (state.tab === 'museum') {
@@ -142,7 +143,6 @@ function init() {
   load();
   $('#compareToggle')?.addEventListener('change', e => setCompareMode(e.target.checked));
   $('#optimizeBtn')?.addEventListener('click', openOptimizer);
-  $('#presetsBtn')?.addEventListener('click', () => openPresetsModal());
   $$('#tabs .tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
   subscribe(renderAll);
   renderAll();

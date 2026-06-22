@@ -12,7 +12,7 @@ let activeRef = 'a';
 export function openPresetsModal(ref = 'a') {
   ensureOverlay();
   activeRef = ref;
-  render(ref);
+  render();
   overlay.classList.add('open');
 }
 
@@ -32,7 +32,7 @@ function ensureOverlay() {
   document.body.appendChild(overlay);
 }
 
-function render(ref) {
+function render() {
   const modal = overlay.querySelector('.presets-modal');
 
   // Group by type, preserving first-seen order.
@@ -74,25 +74,18 @@ function render(ref) {
     </div>`;
   }).join('');
 
+  const refLabel = activeRef === 'b' ? 'Build B' : 'Build A';
   modal.innerHTML = `
     <div class="presets-head">
       <span class="presets-title">📋 Meta Builds</span>
+      <span class="presets-target">Loading into <b>${refLabel}</b></span>
       <button class="presets-close" aria-label="Close">✕</button>
     </div>
     <div class="presets-body">
-      <div class="presets-ref-row">
-        <span class="presets-ref-label">Load into:</span>
-        <button class="presets-ref-btn${activeRef === 'a' ? ' active' : ''}" data-ref="a">Build A</button>
-        <button class="presets-ref-btn${activeRef === 'b' ? ' active' : ''}" data-ref="b">Build B</button>
-      </div>
       ${sectionsHtml}
     </div>`;
 
   modal.querySelector('.presets-close').addEventListener('click', closePresetsModal);
-
-  modal.querySelectorAll('.presets-ref-btn').forEach(btn => {
-    btn.addEventListener('click', () => { activeRef = btn.dataset.ref; render(activeRef); });
-  });
 
   modal.querySelectorAll('.preset-card').forEach(card => {
     card.addEventListener('click', () => {
