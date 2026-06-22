@@ -138,8 +138,8 @@ export const MUTATION_COLORS = {
   diamond:     '#5fd3e0',
   prismatic:   '#c77dff',
   festive:     '#ff5d73',
-  overclocked: '#ff8a3d',
-  granite:     '#9a9085',
+  overclocked: '#9d4edd',
+  granite:     '#ff8a3d',
 };
 export function mutationColor(id) {
   return MUTATION_COLORS[id] || '#f7a8cf';

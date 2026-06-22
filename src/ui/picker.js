@@ -218,7 +218,7 @@ function renderTiles() {
   const items = getItems(s.cat).filter(i =>
     i.name.toLowerCase().includes(search) &&
     (rf === 'all' || (i.rarity || '').toLowerCase() === rf) &&
-    (!limitedOnly || i.limited));
+    (limitedOnly ? i.limited : !i.limited));
   // Equip-once rule: a unique item already worn elsewhere can't be picked again.
   const blocked = s.kind === 'accessory' ? uniqueEquippedElsewhere() : new Set();
 
@@ -329,7 +329,7 @@ function renderConfig() {
     
     const list = enchantsFor(s.label);
     const enchChips = [`<button class="chip${!cfg.enchant ? ' active' : ''}" data-ench="">None</button>`]
-      .concat(list.map(en => `<button class="chip${cfg.enchant === en.id ? ' active' : ''}" data-ench="${en.id}" data-tooltip="${escapeHtml(en.rawEffects ? en.rawEffects.join('\n') : en.name)}"><span style="color:${enchantColor(en.id)}">${escapeHtml(en.name)}</span></button>`)).join('');
+      .concat(list.map(en => `<button class="chip${cfg.enchant === en.id ? ' active' : ''}" data-ench="${en.id}" style="--ec:${enchantColor(en.id)}" data-tooltip="${escapeHtml(en.rawEffects ? en.rawEffects.join('\n') : en.name)}">${escapeHtml(en.name)}</button>`)).join('');
 
     const tList = trinketsFor(s.label);
     let trinketHtml = '';

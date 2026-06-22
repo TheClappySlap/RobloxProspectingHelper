@@ -499,10 +499,15 @@ h1, h2, h3 { margin: 0; font-weight: 650; }
 .cfg-rarity { font-size: .64rem; text-transform: uppercase; letter-spacing: .5px; }
 .rs-hint { text-transform: none; letter-spacing: 0; font-size: .63rem; color: var(--muted-2); font-weight: 400; }
 /* Mutation chips use their own color (--mc set inline) */
+/* Mutation chips — use their own color (--mc set inline on button) */
 .chip[data-mut] { --mc: var(--accent); }
 .chip[data-mut]:not(.active):hover { color: var(--mc); outline-color: color-mix(in srgb, var(--mc) 55%, transparent); }
 .chip[data-mut].active { background: color-mix(in srgb, var(--mc) 16%, var(--card)); border-color: var(--mc); color: var(--mc); outline-color: var(--mc); }
 .chip[data-mut].active span { color: var(--mc); }
+/* Enchant chips — same pattern with --ec */
+.chip[data-ench] { --ec: var(--accent); }
+.chip[data-ench]:not([data-ench=""]):not(.active):hover { color: var(--ec); outline-color: color-mix(in srgb, var(--ec) 55%, transparent); }
+.chip[data-ench]:not([data-ench=""]).active { background: color-mix(in srgb, var(--ec) 16%, var(--card)); border-color: var(--ec); color: var(--ec); outline-color: var(--ec); }
 /* Star chips — show literal ★ characters, compact */
 .star-chip { font-size: .72rem; padding: 4px 7px; letter-spacing: .04em; }
 

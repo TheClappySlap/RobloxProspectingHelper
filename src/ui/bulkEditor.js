@@ -5,7 +5,8 @@
 
 import { getBuild, setSlot } from '../core/store.js';
 import { getMutations } from '../core/db.js';
-import { escapeHtml, mutColor } from './helpers.js';
+import { mutationColor } from '../core/config.js';
+import { escapeHtml } from './helpers.js';
 
 const ACCESSORY_KEYS = ['necklace', 'charm', 'ring1', 'ring2', 'ring3', 'ring4', 'ring5', 'ring6', 'ring7', 'ring8'];
 
@@ -66,7 +67,7 @@ function render(ref) {
   const mutChips = [
     `<button type="button" class="chip${sel.mutation === '' ? ' active' : ''}" data-mut="">None</button>`,
     ...muts.map(m => {
-      const col = mutColor(m.multiplier);
+      const col = mutationColor(m.id);
       return `<button type="button" class="chip bulk-mut-chip${sel.mutation === m.id ? ' active' : ''}" data-mut="${m.id}" style="--mc:${col}">
         <span class="bulk-mut-dot"></span>${escapeHtml(m.name)} <span class="bulk-mut-x">×${m.multiplier}</span>
       </button>`;
